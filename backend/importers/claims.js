@@ -14,6 +14,7 @@ const CHRONIC = /^(E11|I1[0-5]|N18|E78|E66|I50|I25|I63|I48|E10|E13|E16|E87|G62|H
 async function importClaims({ fromExcel = false } = {}) {
   const db = await openDatabase('claims', { fresh: true });
   db.exec(fs.readFileSync(path.join(__dirname, '..', 'database', 'schema_claims.sql'), 'utf8'));
+  db.exec(fs.readFileSync(path.join(__dirname, '..', 'database', 'views_revised_claims.sql'), 'utf8'));
   db.db.run('PRAGMA foreign_keys = OFF');   // facts are loaded before their dimensions; integrity is checked at the end
   const t0 = Date.now();
   const members = new Map(), policies = new Map(), providers = new Map(), clinicians = new Map(), dx = new Map(), claims = new Map();

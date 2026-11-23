@@ -22,8 +22,8 @@ Response (200):
     "trigger_variant": "rulebook",
     "run_date": "2026-11-20",
     "as_of_date": "2026-10-31",
-    "started_at": "2026-11-23 12:39:41",
-    "finished_at": "2026-11-23 12:39:42",
+    "started_at": "2026-11-23 17:40:42",
+    "finished_at": "2026-11-23 17:40:43",
     "members_evaluated": 250,
     "triggered_by": "setup",
     "stats_json": "{\"members\":250,\"fired\":798,\"cannot_tell\":183,\"needs_opened\":748,\"needs_closed_in_claims\":0,\"actions\":771,\"matches_ext…"
@@ -75,7 +75,7 @@ Response (200):
         "… 29 more"
       ]
     },
-    "… 12 more"
+    "… 15 more"
   ],
   "ccl": [
     {
@@ -111,7 +111,7 @@ Response (200):
         }
       ]
     },
-    "… 69 more"
+    "… 77 more"
   ]
 }
 ```
@@ -122,7 +122,7 @@ Screen element → API field → table.column → source (docs/mappings/lineage.
 Response (200):
 ```json
 {
-  "generated_at": "2026-11-23T12:40:27.984Z",
+  "generated_at": "2026-11-23T17:40:48.240Z",
   "chain": "Frontend screen → UI element → API response field → table.column → source file or rule output",
   "api_fields": {
     "identity.display_name": "member_identifier_crosswalk.display_name (pseudonym)",
@@ -185,7 +185,7 @@ Response (200):
       "table_column": "cohort, care_plan, worklist.list_status",
       "source": "operational / engine"
     },
-    "… 137 more"
+    "… 112 more"
   ]
 }
 ```
@@ -508,7 +508,7 @@ Response (200):
     "extract_total_risk_score": 12,
     "extract_risk_tier": "2. High",
     "matches_extract": 1,
-    "evaluated_at": "2026-11-23 12:39:41",
+    "evaluated_at": "2026-11-23 17:40:42",
     "components": [
       {
         "component": "C",
@@ -600,7 +600,7 @@ Response (200):
   "assignment": {
     "member_id": "x206",
     "nurse_id": "U-0150",
-    "assigned_at": "2026-11-23 12:39:41",
+    "assigned_at": "2026-11-23 17:40:42",
     "assigned_by": "engine",
     "nurse_name": "Omar Khalid"
   },
@@ -1477,7 +1477,7 @@ Response (200):
   "extract_total_risk_score": 12,
   "extract_risk_tier": "2. High",
   "matches_extract": 1,
-  "evaluated_at": "2026-11-23 12:39:41",
+  "evaluated_at": "2026-11-23 17:40:42",
   "components": [
     {
       "component": "C",
@@ -1591,7 +1591,7 @@ Response (200):
     "next_best_action": "Same-day clinician review, hypo plan, glucagon check",
     "action_owner": "Doctor",
     "done_when": "Review note and medicine change logged",
-    "evaluated_at": "2026-11-23 12:39:41",
+    "evaluated_at": "2026-11-23 17:40:42",
     "trigger_name": "Hypoglycaemia",
     "pathway": "T2D",
     "need_class": "safety",
@@ -1628,7 +1628,7 @@ Response (200):
     "next_best_action": "Stop the script and escalate the same day",
     "action_owner": "Nurse → doctor",
     "done_when": "Escalation closed",
-    "evaluated_at": "2026-11-23 12:39:41",
+    "evaluated_at": "2026-11-23 17:40:42",
     "trigger_name": "BP urgent",
     "pathway": "HTN",
     "need_class": "safety",
@@ -1685,8 +1685,8 @@ Response (200):
     "status": "active",
     "created_run_id": 1,
     "updated_run_id": 1,
-    "created_at": "2026-11-23 12:39:41",
-    "updated_at": "2026-11-23 12:39:41"
+    "created_at": "2026-11-23 17:40:42",
+    "updated_at": "2026-11-23 17:40:42"
   },
   "needs": [
     {
@@ -1773,7 +1773,7 @@ Response (200):
     "parent_action_id": null,
     "source": "engine",
     "run_id": 1,
-    "created_at": "2026-11-23 12:39:41",
+    "created_at": "2026-11-23 17:40:42",
     "closed_at": null,
     "came_from": null,
     "because_outcome": null,
@@ -1795,7 +1795,7 @@ Response (200):
     "parent_action_id": null,
     "source": "engine",
     "run_id": 1,
-    "created_at": "2026-11-23 12:39:41",
+    "created_at": "2026-11-23 17:40:42",
     "closed_at": null,
     "came_from": null,
     "because_outcome": null,
@@ -1812,14 +1812,14 @@ Response (200):
 ```json
 [
   {
-    "at": "2026-11-23 12:39:41",
+    "at": "2026-11-23 17:40:42",
     "type": "gap",
     "text": "Trig8: new → Potential (engine)",
     "by": "engine",
     "ref": 96
   },
   {
-    "at": "2026-11-23 12:39:41",
+    "at": "2026-11-23 17:40:42",
     "type": "gap",
     "text": "Trig13: new → Potential (engine)",
     "by": "engine",
@@ -2108,8 +2108,8 @@ Response (200):
     "trigger_variant": "rulebook",
     "run_date": "2026-11-20",
     "as_of_date": "2026-10-31",
-    "started_at": "2026-11-23 12:39:41",
-    "finished_at": "2026-11-23 12:39:42",
+    "started_at": "2026-11-23 17:40:42",
+    "finished_at": "2026-11-23 17:40:43",
     "members_evaluated": 250,
     "triggered_by": "setup",
     "stats_json": "{\"members\":250,\"fired\":798,\"cannot_tell\":183,\"needs_opened\":748,\"needs_closed_in_claims\":0,\"actions\":771,\"matches_ext…",
@@ -2158,7 +2158,7 @@ Response (200):
     "next_best_action": "Glycaemic treatment review",
     "action_owner": "Doctor",
     "done_when": "Goal, decision and next test date recorded",
-    "evaluated_at": "2026-11-23 12:39:41"
+    "evaluated_at": "2026-11-23 17:40:42"
   },
   {
     "evaluation_id": 2362,
@@ -2178,7 +2178,7 @@ Response (200):
     "next_best_action": "Glycaemic treatment review",
     "action_owner": "Doctor",
     "done_when": "Goal, decision and next test date recorded",
-    "evaluated_at": "2026-11-23 12:39:41"
+    "evaluated_at": "2026-11-23 17:40:42"
   }
 ]
 ```
@@ -2656,7 +2656,7 @@ Response (200):
     "status": "open",
     "completed_at": null,
     "booking_date": null,
-    "created_at": "2026-11-23 12:39:41",
+    "created_at": "2026-11-23 17:40:42",
     "display_name": "Yousef Al Kaabi",
     "action_kind": "call",
     "need_id": null,
@@ -2679,7 +2679,7 @@ Response (200):
     "status": "open",
     "completed_at": null,
     "booking_date": null,
-    "created_at": "2026-11-23 12:39:41",
+    "created_at": "2026-11-23 17:40:42",
     "display_name": "Mohammed Al Mazrouei",
     "action_kind": "call",
     "need_id": null,

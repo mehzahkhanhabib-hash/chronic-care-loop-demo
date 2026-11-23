@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T12:40:27.984Z",
+ "generated_at": "2026-11-23T17:40:48.240Z",
  "chain": "Frontend screen → UI element → API response field → table.column → source file or rule output",
  "api_fields": {
   "identity.display_name": "member_identifier_crosswalk.display_name (pseudonym)",
@@ -122,7 +122,7 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Compiled SQL (read-only)",
+   "element": "SQL mode: compiled SQL (read-only) and guardrail tiles",
    "api": "POST /api/cohorts/estimate",
    "field": "sql, params",
    "table_column": "member_longitudinal",
@@ -167,6 +167,15 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
+   "element": "Profile: Region bar",
+   "api": "static",
+   "field": "\"Not in extract 100%\"",
+   "table_column": "— (the longitudinal extract carries no region column)",
+   "source": "static"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 1 · Cohort & campaign builder",
    "element": "Sample members (pseudonym, id, age, sex, HbA1c fact)",
    "api": "POST /api/cohorts/estimate",
    "field": "profile.sample[].id,name,ini,age,sex,facts",
@@ -181,6 +190,24 @@
    "field": "n",
    "table_column": "member_longitudinal, cohort.definition_json",
    "source": "longitudinal / operational"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 1 · Cohort & campaign builder",
+   "element": "Template cards: member count per template",
+   "api": "POST /api/cohorts/estimate (one call per template)",
+   "field": "n",
+   "table_column": "member_longitudinal (compiled SQL over the template rules)",
+   "source": "longitudinal"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 1 · Cohort & campaign builder",
+   "element": "Add-rule box suggestions and Describe mode matches",
+   "api": "client: src/lib/fields.js (feature catalogue, parseDescription)",
+   "field": "F[*].label/opts/col",
+   "table_column": "member_longitudinal column named in F[*].col",
+   "source": "static catalogue over longitudinal columns"
   },
   {
    "app": "Chronic Care Studio",
@@ -203,7 +230,7 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Checks panel",
+   "element": "Checks panel (opt-out guardrail, unsupported rules, fewer than 50 members)",
    "api": "client lint over estimate + rules",
    "field": "unsupported, n",
    "table_column": "—",
@@ -212,16 +239,16 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Save cohort / Save and use",
+   "element": "Save cohort only / Save and set up a campaign; Refresh select",
    "api": "POST /api/cohorts",
-   "field": "cohort_id, version, row_count",
+   "field": "name, refresh, base, logic, inc, exc → cohort_id, version, row_count",
    "table_column": "cohort, cohort_rule, cohort_member (holdout)",
    "source": "operational"
   },
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Cohort library rows (name, id, version, refresh, owner, definition, size)",
+   "element": "Cohorts tab: rows and detail (name, id, version, refresh, owner, definition, size, version row, compiled SQL)",
    "api": "GET /api/cohorts",
    "field": "cohorts[].id,version,name,refresh,owner,inc,exc,n,sql,updated_at",
    "table_column": "cohort.*, cohort_rule.*, cohort.row_count",
@@ -239,34 +266,61 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Campaign calendar and cards",
+   "element": "Campaign calendar bars and cards (id, priority, status, name, goal, start, weeks, channels)",
    "api": "GET /api/campaigns",
-   "field": "campaigns[].id,name,goal,mode,triggers,channels,nurses,calls_per_day,holdout,start,weeks,priority,status,include,exclude",
+   "field": "campaigns[].id,name,goal,channels,start,weeks,priority,status,include,exclude",
    "table_column": "campaign.*, campaign_cohort.*",
    "source": "operational"
   },
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Campaign dialog: trigger picker",
+   "element": "Campaign members (cards, calendar bars, dialog “Members in scope”)",
+   "api": "GET /api/cohorts/:id for every saved cohort",
+   "field": "members[].member_id, de-duplicated across include cohorts minus exclude cohorts",
+   "table_column": "cohort_member.member_id, campaign_cohort.cohort_id/role",
+   "source": "operational"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 1 · Cohort & campaign builder",
+   "element": "Campaign dialog step What: trigger chips",
    "api": "GET /api/rules/rule_trigger",
-   "field": "trigger_code, name",
-   "table_column": "rule_trigger.trigger_code/name",
+   "field": "trigger_code, name, pathway, sort_order",
+   "table_column": "rule_trigger.trigger_code/name/pathway/sort_order",
    "source": "rulebook"
   },
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Campaign save / status",
+   "element": "Campaign dialog step Who: goal, include cohorts, leave-out cohorts",
+   "api": "GET /api/cohorts",
+   "field": "cohorts[].id,name,inc,n",
+   "table_column": "cohort.*, cohort_rule.*, cohort.row_count",
+   "source": "operational"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 1 · Cohort & campaign builder",
+   "element": "Campaign dialog step Review: summary rows and JSON",
+   "api": "client (dialog state)",
+   "field": "campaign_id, cohorts, exclude, trigger_mode, triggers, channels, start, priority",
+   "table_column": "campaign.*, campaign_cohort.* once saved",
+   "source": "operational"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 1 · Cohort & campaign builder",
+   "element": "Hand off (campaign saved as Live) and status chips",
    "api": "POST /api/campaigns, PATCH /api/campaigns/:id",
-   "field": "campaign",
+   "field": "campaign; nurses 6, calls_per_day 25, holdout 10, weeks 8 are sent as fixed defaults for new campaigns and are not shown (Studio_7 has no Effort step)",
    "table_column": "campaign, campaign_cohort",
    "source": "operational"
   },
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 1 · Cohort & campaign builder",
-   "element": "Hand off / Run rules now",
+   "element": "Hand off: care intelligence run, then screen 2 opens",
    "api": "POST /api/intelligence/runs",
    "field": "run_id, fired, needs_opened, actions",
    "table_column": "intelligence_run, member_risk_result, member_rule_evaluation, member_alert, care_plan, care_need, action, worklist",
@@ -428,20 +482,29 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 2 · Care intelligence",
-   "element": "Care plan rows (rank, class, need, NBA, owner, due, gap state, hold, action, last outcome, evidence, slot)",
+   "element": "Care plan card, view “In order” (default): number, class pill, next best action, why · rule ref, status",
    "api": "GET /api/members/:id/care-plan",
-   "field": "needs[].rank,need_class,class_label,need,trigger_code,next_best_action,action_owner,due_date,gap_state,hold_until,action.*,last_outcome.*,evidence,slot",
-   "table_column": "care_need.*, rule_trigger.name, rule_need_class.label, action.*, disposition_event.outcome/recorded_by",
+   "field": "needs[].rank, need_class, class_label, next_best_action, evidence, trigger_code, slot, status, gap_state, hold_until, action_owner, done_when",
+   "table_column": "care_need.rank/slot/status/gap_state/evidence/hold_until, rule_need_class.label, rule_action.next_best_action/owner_role/done_when, rule_trigger.trigger_code",
    "source": "engine / operational"
   },
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 2 · Care intelligence",
-   "element": "Care plan footer (plan id, tier, cadence, run)",
+   "element": "Care plan card, view “Current · Next · Future”: need cards, closed pills, care-gap lifecycle",
    "api": "GET /api/members/:id/care-plan",
-   "field": "care_plan.care_plan_id,tier,cadence,updated_run_id",
-   "table_column": "care_plan.*",
-   "source": "engine"
+   "field": "needs[].slot, need_class, class_label, need, trigger_code, next_best_action, action_owner, done_when, due_date, gap_state, hold_until, action.kind/title/assignee",
+   "table_column": "care_need.*, rule_trigger.name, rule_need_class.label, rule_action.*, action.*",
+   "source": "engine / operational"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 2 · Care intelligence",
+   "element": "Care plan card, view “Current · Next · Future”: cadence strip",
+   "api": "GET /api/members/:id/risk",
+   "field": "tier, tier_rule.cadence, tier_rule.cadence_days",
+   "table_column": "member_risk_result.tier, rule_tier.cadence/cadence_days",
+   "source": "engine / rulebook"
   },
   {
    "app": "Chronic Care Studio",
@@ -500,7 +563,7 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Nurse picker (name, role, languages, capacity)",
+   "element": "Nurse picker (name, role; languages and capacity in the strip)",
    "api": "GET /api/users",
    "field": "user_id, name, role, languages, daily_capacity",
    "table_column": "nurse_user.*",
@@ -518,16 +581,16 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Worklist row: rank, pseudonym, id, action title, attempt, current needs, due",
+   "element": "Ranked call list row: rank, pseudonym, id, current needs, due",
    "api": "GET /api/portal/worklist?nurse_id=&status=",
-   "field": "nurse_rank, display_name, member_id, initials, action_title, attempt, current_needs, due_by",
+   "field": "items[].nurse_rank, display_name, member_id, current_needs, action_title, due_by",
    "table_column": "worklist.nurse_rank/member_id/current_needs/due_by, member_identifier_crosswalk.display_name/initials, action.title/attempt",
    "source": "engine / operational"
   },
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Worklist row chips: alert, priority, tier, consent",
+   "element": "Ranked call list row chip: priority, tier, attempt, consent (alert colour as chip colour)",
    "api": "GET /api/portal/worklist",
    "field": "alert_colour, contact_priority, tier, consent_status",
    "table_column": "worklist.alert_colour/contact_priority/tier, consent_event.consent_status",
@@ -536,8 +599,8 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Embedded Care Coordinator Portal (iframe) / Open in portal",
-   "api": "portal app /#/member/:id",
+   "element": "Embedded Care Coordinator Portal (full-bleed iframe) / Open in the portal",
+   "api": "portal app: dev http://localhost:3001/#/member/:id, production /portal/#/member/:id",
    "field": "—",
    "table_column": "— (the portal reads its own APIs)",
    "source": "—"
@@ -545,7 +608,16 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Fallback header (pseudonym, id, age, gender, language, plan, pathway, consent, tier, alert, priority)",
+   "element": "Portal availability check (switches to the Studio summary when the portal app is not answering)",
+   "api": "GET portal app root",
+   "field": "—",
+   "table_column": "—",
+   "source": "—"
+  },
+  {
+   "app": "Chronic Care Studio",
+   "screen": "Studio screen 3 · Care portal",
+   "element": "Summary: header (pseudonym, id, age, gender, language, plan, pathway, consent, tier, alert, priority)",
    "api": "GET /api/members/:id",
    "field": "identity.*, consent_status, risk.tier/total_risk_score/alert.*",
    "table_column": "member_longitudinal, member_identifier_crosswalk, consent_event, member_risk_result, member_alert",
@@ -554,16 +626,16 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Fallback care plan",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "needs[]",
-   "table_column": "care_need, action",
+   "element": "Summary: care plan card (same two views as screen 2)",
+   "api": "GET /api/members/:id/care-plan, GET /api/members/:id/risk",
+   "field": "needs[], tier_rule",
+   "table_column": "care_need, action, rule_action, rule_tier",
    "source": "engine"
   },
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Fallback open tasks",
+   "element": "Summary: open tasks",
    "api": "GET /api/members/:id/tasks",
    "field": "task_id, due_date, task_kind, title, assignee_name, status",
    "table_column": "task.*, nurse_user.name",
@@ -572,7 +644,7 @@
   {
    "app": "Chronic Care Studio",
    "screen": "Studio screen 3 · Care portal",
-   "element": "Fallback timeline",
+   "element": "Summary: timeline",
    "api": "GET /api/members/:id/timeline",
    "field": "at, type, text, by",
    "table_column": "consent_event, contact_attempt, disposition_event, member_assertion, care_gap_event, appointment, nurse_note, action",
@@ -581,7 +653,7 @@
   {
    "app": "Care Coordinator Portal",
    "screen": "Login",
-   "element": "Care-team picker (name, role, capacity)",
+   "element": "Demo account picker (name, role)",
    "api": "GET /api/users",
    "field": "name, role, daily_capacity",
    "table_column": "nurse_user.name / role / daily_capacity",
@@ -590,7 +662,7 @@
   {
    "app": "Care Coordinator Portal",
    "screen": "Login",
-   "element": "Sign in",
+   "element": "Login with Daman SSO (demo sign-in, PIN 1234)",
    "api": "POST /api/auth/login",
    "field": "user",
    "table_column": "nurse_user.username / pin",
@@ -599,16 +671,16 @@
   {
    "app": "Care Coordinator Portal",
    "screen": "Shell",
-   "element": "Shift progress (tasks done / total)",
+   "element": "Top bar · Calls Today / Reached / Consented",
    "api": "GET /api/portal/analytics?nurse_id",
-   "field": "tasks_done, tasks_open",
-   "table_column": "task.status",
+   "field": "calls_made, reached, consents",
+   "table_column": "contact_attempt, consent_event",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
    "screen": "Shell",
-   "element": "Queue badge (today count)",
+   "element": "Rail · Nudge Queue badge",
    "api": "GET /api/portal/analytics?nurse_id",
    "field": "worklist[list_status=today].n",
    "table_column": "worklist.list_status",
@@ -616,686 +688,389 @@
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Shell",
-   "element": "Run / run date / rule version chip",
-   "api": "GET /api/health",
-   "field": "latest_run.run_id, run_date, rule_version",
-   "table_column": "intelligence_run.run_id / run_date; rule_version.rule_version",
+   "screen": "Queue",
+   "element": "Flagged members cards (ring R, name, age, gender, nationality, masked id)",
+   "api": "GET /api/portal/worklist?nurse_id",
+   "field": "total_risk_score, alert_colour, display_name, age, gender, nationality, member_id",
+   "table_column": "member_risk.total_risk_score, member_alert.alert_colour, member_longitudinal.*, member_crosswalk.display_name",
+   "source": "engine + longitudinal"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Queue",
+   "element": "Card tags (need title, campaign, due, priority)",
+   "api": "GET /api/portal/worklist?nurse_id",
+   "field": "action_title, campaign_name, due_by, contact_priority",
+   "table_column": "action.title, campaign.name, worklist.due_by, member_alert.contact_priority",
    "source": "engine"
   },
   {
    "app": "Care Coordinator Portal",
    "screen": "Queue",
-   "element": "Tabs today / queued / scheduled / nudge",
+   "element": "Chips Today / Queued / Scheduled / Nudges",
    "api": "GET /api/portal/worklist?nurse_id",
-   "field": "items[].list_status",
+   "field": "list_status",
    "table_column": "worklist.list_status",
    "source": "engine"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Member card: name (pseudonym) + mask id",
-   "api": "GET /api/portal/worklist",
-   "field": "display_name, member_id",
-   "table_column": "member_identifier_crosswalk.display_name / member_id (mask_id)",
+   "screen": "Member header",
+   "element": "Name (pseudonym) + masked id, plan, age, gender, nationality, language, diagnostic",
+   "api": "GET /api/members/:id",
+   "field": "identity.*",
+   "table_column": "member_crosswalk.display_name, member_longitudinal.Age / Gender / Nationality / Policy_Type, pathway",
    "source": "longitudinal"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Member card: action title",
-   "api": "GET /api/portal/worklist",
-   "field": "action_title",
-   "table_column": "action.title",
+   "screen": "Member header",
+   "element": "Risk ring, tier label, alert colour · priority",
+   "api": "GET /api/members/:id",
+   "field": "risk.total_risk_score, tier, tier_label, alert.alert_colour, alert.contact_priority",
+   "table_column": "member_risk.*, member_alert.*",
    "source": "engine"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Member card: due (Today / Tomorrow / overdue)",
-   "api": "GET /api/portal/worklist",
-   "field": "due_by vs run_date",
-   "table_column": "worklist.due_by; app_setting.run_date",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Member card: alert · priority pill",
-   "api": "GET /api/portal/worklist",
-   "field": "alert_colour, contact_priority",
-   "table_column": "member_alert.alert_colour / contact_priority",
-   "source": "rulebook"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Member card: R score, tier, safety flag",
-   "api": "GET /api/portal/worklist",
-   "field": "total_risk_score, tier, safety_flag",
-   "table_column": "member_risk_result.total_risk_score / tier / safety_flag",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Member card: consent needed",
-   "api": "GET /api/portal/worklist",
+   "screen": "Member header",
+   "element": "Consent tag",
+   "api": "GET /api/members/:id",
    "field": "consent_status",
    "table_column": "consent_event.consent_status (latest)",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Member card: current needs",
-   "api": "GET /api/portal/worklist",
-   "field": "current_needs",
-   "table_column": "worklist.current_needs (care_need.slot = CURRENT ⋈ rule_trigger.name)",
+   "screen": "Member header",
+   "element": "From Care studio · campaign",
+   "api": "GET /api/members/:id",
+   "field": "worklist.campaign_id",
+   "table_column": "worklist.campaign_id",
    "source": "engine"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Queue",
-   "element": "Queue order",
-   "api": "GET /api/portal/worklist",
-   "field": "nurse_rank",
-   "table_column": "worklist.nurse_rank (rule_queue_order)",
-   "source": "rulebook"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Header: name, mask id, age, gender, nationality, language, policy type",
-   "api": "GET /api/members/:id",
-   "field": "identity.*",
-   "table_column": "member_longitudinal.mask_id / AGE / GENDER / NATIONALITY / policy_type; member_identifier_crosswalk.display_name",
-   "source": "longitudinal"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Header: pathway pill",
-   "api": "GET /api/members/:id",
-   "field": "identity.pathway",
-   "table_column": "member_longitudinal.cohort_t2d_l12m / cohort_htn_l12m",
-   "source": "longitudinal"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Header: R / 23, tier, alert · priority, priority clinical review",
-   "api": "GET /api/members/:id",
-   "field": "risk.total_risk_score, tier, tier_label, alert.alert_colour, alert.contact_priority, safety_flag",
-   "table_column": "member_risk_result.*; member_alert.*",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Header: assigned nurse",
-   "api": "GET /api/members/:id",
-   "field": "assignment.nurse_name",
-   "table_column": "member_assignment.nurse_id ⋈ nurse_user.name",
+   "screen": "Member header",
+   "element": "Call / End call / No answer",
+   "api": "POST /api/portal/calls · PATCH /api/portal/calls/:id",
+   "field": "call_id, reached, result, red_flag, stage",
+   "table_column": "contact_attempt.*",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Call / No answer / End call",
-   "api": "POST /api/portal/calls, PATCH /api/portal/calls/:id",
-   "field": "reached, red_flag, stage",
-   "table_column": "contact_attempt.reached / result; call_interaction.stage / red_flag",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Red-flag symptoms checkbox (RED members)",
-   "api": "POST /api/portal/calls",
-   "field": "red_flag",
-   "table_column": "call_interaction.red_flag → action(kind=escalation)",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Journey steps",
-   "api": "GET /api/members/:id, /care-plan",
-   "field": "consent_status, needs[].last_outcome",
-   "table_column": "consent_event.consent_status; disposition_event.outcome",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Why we're calling: top need, trigger code, class, evidence",
+   "screen": "Call · Why we are calling",
+   "element": "Need, trigger, class, evidence, other open gaps",
    "api": "GET /api/members/:id/care-plan",
-   "field": "current[0].need, trigger_code, need_class, evidence",
-   "table_column": "care_need.trigger_code / need_class / evidence ⋈ rule_trigger.name",
-   "source": "engine"
+   "field": "needs[].need, trigger_code, need_class, evidence, slot",
+   "table_column": "care_need.* (rule_trigger)",
+   "source": "engine + rulebook"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Why we're calling: alert reasons, SLA text",
-   "api": "GET /api/members/:id",
-   "field": "risk.alert.reasons, contact_priority",
-   "table_column": "member_alert.reasons / contact_priority (rule_alert, rule_contact_priority)",
-   "source": "rulebook"
+   "screen": "Call · Why we are calling",
+   "element": "Mini tiles after consent (admissions · ER, HbA1c, SBP, payable 12 mo)",
+   "api": "GET /api/members/:id/360",
+   "field": "utilisation.last_12m.*, labs[].last",
+   "table_column": "claim, lab_observation",
+   "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Why we're calling: contact due / list status",
-   "api": "GET /api/members/:id",
-   "field": "worklist.due_by, list_status",
-   "table_column": "worklist.due_by / list_status",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "RED guard banner",
-   "api": "GET /api/members/:id",
-   "field": "risk.alert.alert_colour = RED or risk.safety_flag",
-   "table_column": "member_alert.alert_colour; member_risk_result.safety_flag",
-   "source": "rulebook"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call",
-   "element": "Consent toggle · Log consent / Declined / Withdraw",
+   "screen": "Call · Consent",
+   "element": "Consent Given / Declined / withdrew",
    "api": "POST /api/portal/consent",
-   "field": "consent_status, duration_seconds, call_id",
-   "table_column": "consent_event.consent_status / duration_seconds / call_id",
+   "field": "consent_status, call_id, duration_seconds",
+   "table_column": "consent_event.*",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Review",
-   "element": "Diagnoses rows (code, description, claim count, first/last)",
+   "screen": "Call · Care gaps & plan",
+   "element": "At a glance (conditions, hospital use, medicines, HbA1c)",
    "api": "GET /api/members/:id/360",
-   "field": "conditions[]",
-   "table_column": "diagnosis (view over claim_activity.diagnosis_id) ⋈ diagnosis_code.group3/group4",
+   "field": "conditions, utilisation, medications, labs",
+   "table_column": "diagnosis, claim, pharmacy_claim, lab_observation",
    "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Review",
-   "element": "Latest results rows (test, value, date, claim)",
-   "api": "GET /api/members/:id/360",
-   "field": "labs[].last",
-   "table_column": "lab_observation.code / value_num / result_date / claim_id (parsed from REQUESTEDVALUE)",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call · Review",
-   "element": "Medicines rows (generic, fills, last fill)",
-   "api": "GET /api/members/:id/360",
-   "field": "medications[]",
-   "table_column": "pharmacy_claim (view) generic_name / service_date (GENERICNAME, DATEOFSERVICE)",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call · Review",
-   "element": "Open needs rows (trigger, evidence)",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "current[].evidence",
-   "table_column": "care_need.evidence (from member_rule_evaluation.clinical_evidence over member_longitudinal columns)",
-   "source": "longitudinal"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Call · Review",
-   "element": "Correct / Member says",
+   "screen": "Call · Care gaps & plan",
+   "element": "Review history · Correct / Member says",
    "api": "POST /api/portal/assertions",
-   "field": "assertion_text, need_id",
-   "table_column": "member_assertion.assertion_text; care_need.gap_state Potential→Verified",
+   "field": "assertion_text, call_id",
+   "table_column": "member_assertion.*",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Actions",
-   "element": "Action card: next-best action, owner, done-when, due",
+   "screen": "Call · Care gaps & plan",
+   "element": "Gap rows (need, class, evidence, gap state, slot)",
    "api": "GET /api/members/:id/care-plan",
-   "field": "current[].next_best_action, action_owner, done_when, due_date",
-   "table_column": "care_need.next_best_action / action_owner / done_when (rule_action) / due_date (rule_need_class.due_days)",
+   "field": "needs[].*",
+   "table_column": "care_need.need / need_class / evidence / gap_state / slot / rank",
+   "source": "engine"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Call · Care gaps & plan",
+   "element": "Confirm gap",
+   "api": "POST /api/portal/assertions",
+   "field": "need_id, assertion_text",
+   "table_column": "member_assertion.*, care_gap_event (Potential → Verified)",
+   "source": "operational"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Call · Care gaps & plan",
+   "element": "Member agrees / Already done / Decline / Carry (+ note)",
+   "api": "POST /api/portal/outcomes",
+   "field": "need_id, action_id, outcome, note",
+   "table_column": "disposition_event.*, care_need.status / gap_state, action (follow-up)",
+   "source": "operational"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Call · Care gaps & plan",
+   "element": "Appointment slots, Other Dates, Follow-up schedule",
+   "api": "POST /api/portal/appointments · GET /api/members/:id/appointments",
+   "field": "scheduled_date, scheduled_time, appointment_type, need_id",
+   "table_column": "appointment.*, care_gap_event (→ Scheduled)",
+   "source": "operational"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Call · Outcome",
+   "element": "Next steps · tasks",
+   "api": "GET /api/members/:id/tasks",
+   "field": "title, task_kind, due_date, parent_action_id",
+   "table_column": "task.*, action.*",
+   "source": "operational"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Call · Outcome",
+   "element": "Save Outcome (response, notes, callback)",
+   "api": "PATCH /api/portal/calls/:id · POST /api/portal/notes · POST /api/portal/appointments",
+   "field": "stage, response, notes",
+   "table_column": "contact_attempt.stage / notes, nurse_note.*, appointment.*",
+   "source": "operational"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Care Gaps tab",
+   "element": "Tiles and \"Open care gaps\" table (last call, scheduling, planned)",
+   "api": "GET /api/members/:id/care-plan · /tasks · /appointments",
+   "field": "needs[].last_outcome, gap_state, status; tasks; appointments",
+   "table_column": "care_need.*, disposition_event.outcome, task.*, appointment.*",
+   "source": "engine + operational"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Care Gaps tab",
+   "element": "Risk bars, tier scale, alert, extract reference",
+   "api": "GET /api/members/:id/risk",
+   "field": "clinical_score … age_sex_score, total_risk_score, tier, extract_total_risk_score, matches_extract",
+   "table_column": "member_risk.*",
+   "source": "engine + longitudinal"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Care Gaps tab",
+   "element": "Cadence",
+   "api": "GET /api/members/:id/risk",
+   "field": "tier_rule.cadence, cadence_days, campaign_does",
+   "table_column": "rule_tier.*",
    "source": "rulebook"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Actions",
-   "element": "Action card: class pill, gap state, action id/status",
+   "screen": "Care Gaps tab",
+   "element": "Care plan board Current / Next / Future, gap lifecycle, write-backs",
    "api": "GET /api/members/:id/care-plan",
-   "field": "current[].need_class, gap_state, action",
-   "table_column": "care_need.need_class / gap_state; action.action_id / status",
-   "source": "engine"
+   "field": "current, next, future, closed, gap_events, last_outcome",
+   "table_column": "care_need.*, care_gap_event.*, disposition_event.*",
+   "source": "engine + operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Actions",
-   "element": "Member agrees / Already done / Declined / Carry",
-   "api": "POST /api/portal/outcomes",
-   "field": "outcome, need_id, action_id",
-   "table_column": "disposition_event.outcome → rule_writeback (care_need.status/slot/gap_state/hold_until, action.status, follow-up action)",
+   "screen": "Tasks tab",
+   "element": "Member tasks, tick, Book",
+   "api": "GET /api/members/:id/tasks · POST /api/portal/tasks/:id/complete · POST /api/portal/tasks/:id/book",
+   "field": "status, booking_date",
+   "table_column": "task.status / completed_at / booking_date",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Actions",
-   "element": "Book (date)",
-   "api": "POST /api/portal/appointments",
-   "field": "scheduled_date, need_id",
-   "table_column": "appointment.scheduled_date; care_need.gap_state → Scheduled",
+   "screen": "Tasks tab",
+   "element": "Assigned to",
+   "api": "POST /api/portal/assign",
+   "field": "member_id, nurse_id",
+   "table_column": "member_assignment.nurse_id",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Actions",
-   "element": "Next in line (NEXT needs)",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "next[].need",
-   "table_column": "care_need.slot = NEXT (rule_slot)",
-   "source": "engine"
+   "screen": "Timeline tab",
+   "element": "Care map lanes and Activity · hospital, clinics, pharmacy",
+   "api": "GET /api/members/:id/claims?limit=500",
+   "field": "service_date, bg_ipop, admit_desc, facility_type, facility_name, specialty, payable",
+   "table_column": "claim.*, provider.*, clinician.*",
+   "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Outcome",
-   "element": "Member's response (auto from agreed) / chips",
-   "api": "PATCH /api/portal/calls/:id",
-   "field": "response, stage=closed",
-   "table_column": "call_interaction.response / stage",
-   "source": "operational"
+   "screen": "Timeline tab",
+   "element": "Care map and Activity · labs",
+   "api": "GET /api/members/:id/360",
+   "field": "labs[].points[].date / value / claim_id",
+   "table_column": "lab_observation.*",
+   "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Outcome",
-   "element": "Next steps created by this call",
+   "screen": "Timeline tab",
+   "element": "Care team events and Care Coordinator Calls lane",
    "api": "GET /api/members/:id/timeline",
-   "field": "events[type=action]",
-   "table_column": "action (source = followup) title / due_date",
+   "field": "at, type, text, by",
+   "table_column": "consent_event, contact_attempt, disposition_event, member_assertion, care_gap_event, appointment, nurse_note, action",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Outcome",
-   "element": "Notes",
-   "api": "POST /api/portal/notes",
-   "field": "text",
-   "table_column": "nurse_note.text",
+   "screen": "Intelligence tab",
+   "element": "Risk components, trigger evaluations, inputs, evidence",
+   "api": "GET /api/members/:id/risk · GET /api/members/:id/evaluations",
+   "field": "components[].rules, evaluation_result, input_values, clinical_evidence",
+   "table_column": "member_risk.*, member_rule_evaluation.*, risk_score_band, rule_trigger",
+   "source": "engine + rulebook"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Member 360",
+   "element": "Summary sentence and tags",
+   "api": "GET /api/members/:id/360",
+   "field": "conditions, utilisation.last_12m, labs, medications",
+   "table_column": "diagnosis, claim, lab_observation, pharmacy_claim",
+   "source": "raw_claims"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Member 360",
+   "element": "Suggested focus",
+   "api": "GET /api/members/:id/care-plan",
+   "field": "current[0].need, next_best_action",
+   "table_column": "care_need.need / next_best_action",
+   "source": "engine"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Member 360",
+   "element": "Progress (Flagged … Follow-up)",
+   "api": "GET /api/members/:id · /timeline · /care-plan · /tasks",
+   "field": "worklist, consent_status, timeline[].type, last_outcome, tasks",
+   "table_column": "worklist, consent_event, contact_attempt, disposition_event, task",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Call · Outcome",
-   "element": "Callback requested (date)",
-   "api": "POST /api/portal/appointments",
-   "field": "appointment_type=callback, scheduled_date",
-   "table_column": "appointment.appointment_type / scheduled_date",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
    "screen": "Member 360",
-   "element": "Source line: claims, activity lines, first/last service",
+   "element": "Hospitals & ER",
    "api": "GET /api/members/:id/360",
-   "field": "member.claim_count, activity_count, first_service_date, last_service_date",
-   "table_column": "member.claim_count / activity_count / first_service_date / last_service_date (MIN/MAX DATEOFSERVICE)",
+   "field": "admissions[], ed_visits[], utilisation.last_12m",
+   "table_column": "encounter (view over claim)",
    "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
    "screen": "Member 360",
-   "element": "Tiles: admissions · ED (12 mo), OP claims, payable 12 mo, payable all time",
-   "api": "GET /api/members/:id/360",
-   "field": "utilisation.last_12m.*, all_time.*",
-   "table_column": "encounter (view over claim: BG_IPOP, ADMIT_DESC, PAYABLE) aggregated to the as-of window",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Member 360",
-   "element": "Member and cover (gender, age band, relation, plan, product, network, policy dates, enrolled)",
-   "api": "GET /api/members/:id/360",
-   "field": "member.*, policies[0].*",
-   "table_column": "member.gender (GENDER) / age_category (AGECATEGORY) / member_relation (MEMBERRELATION); member_policy.plan (PLAN) / product (PRODUCT) / network_desc (NETOWRK_DESC) / policy_id / effective_date / expiry_date / enrollment_date",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Member 360",
-   "element": "Diagnoses on claims (code, description, claim count, first/last, chronic marker)",
-   "api": "GET /api/members/:id/360",
-   "field": "conditions[]",
-   "table_column": "diagnosis (view) ⋈ diagnosis_code (DIAGNOSIS_ID, GROUP3, GROUP4, is_chronic_marker)",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Member 360",
-   "element": "Laboratory history (test, LOINC, last value, sparkline, claim link)",
-   "api": "GET /api/members/:id/360",
-   "field": "labs[] (code, name, unit, points[])",
-   "table_column": "lab_observation.code (CODE) / value_num / value_unit (parsed REQUESTEDVALUE) / result_date / claim_id (via ACTIVITY_ID)",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Member 360",
-   "element": "Medications · pharmacy claims (generic, form, tier, fills, last fill)",
-   "api": "GET /api/members/:id/360",
-   "field": "medications[]",
-   "table_column": "pharmacy_claim (view): GENERICNAME, DOSAGEFORM, DRUG_TIERS, DATEOFSERVICE, DRUG_QUANTITY",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Member 360",
-   "element": "Admissions and emergency visits (facility, dates, LOS, diagnosis, payable, admit type)",
-   "api": "GET /api/members/:id/360",
-   "field": "admissions[], ed_visits[]",
-   "table_column": "encounter (view): claim.admit_date (ADMIT_DATE) / discharge_date / los_days (LOS_DAYS) / admit_desc (ADMIT_DESC) ⋈ provider.facility_name ⋈ diagnosis_code",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Member 360",
-   "element": "Procedures and screenings",
-   "api": "GET /api/members/:id/360",
-   "field": "procedures[]",
-   "table_column": "procedure_activity (view): ACTIVITYDETAILTYPE_ID, ACTIVITYDETAIL_ID, ACTIVITY_DESC, COSTBLOCK, PAYABLE",
-   "source": "raw_claims"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Member 360",
-   "element": "Providers table and clinicians chips",
+   "element": "Clinics & doctors",
    "api": "GET /api/members/:id/360",
    "field": "providers[], clinicians[]",
-   "table_column": "provider (PROVIDER_ID, FACILITY_NAME, FACILITY_TYPE, GROUPOWNERLEVEL, REGION); clinician (CLINICIAN_NAME, SPECIALTY)",
+   "table_column": "provider.*, clinician.*, claim",
    "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
    "screen": "Member 360",
-   "element": "Cost by year / by cost block",
+   "element": "Medicines & pharmacy",
    "api": "GET /api/members/:id/360",
-   "field": "costs.by_year, by_cost_block",
-   "table_column": "claim.cy (CY) / payable; claim_activity.cost_block (COSTBLOCK) / payable",
+   "field": "medications[].generic_name, fills, last_fill, last_claim_id",
+   "table_column": "pharmacy_claim (view over claim_activity)",
    "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
    "screen": "Member 360",
-   "element": "Claims table (date, claim id, IP/ED/OP, facility, clinician, diagnosis, lines, payable)",
-   "api": "GET /api/members/:id/claims",
-   "field": "rows[]",
-   "table_column": "claim.* (CLAIM_ID, DATEOFSERVICE, BG_IPOP, ADMIT_DESC, PAYABLE) ⋈ provider ⋈ clinician ⋈ diagnosis_code",
+   "element": "Labs & tests",
+   "api": "GET /api/members/:id/360",
+   "field": "labs[].name, last, points, n",
+   "table_column": "lab_observation.*",
    "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Member 360 · Claim drawer",
-   "element": "Claim detail: header, activity lines, lab observations",
+   "screen": "Member 360",
+   "element": "Claims tab (cover, diagnoses, procedures, cost, claims table)",
+   "api": "GET /api/members/:id/360 · GET /api/members/:id/claims?limit&offset",
+   "field": "member, policies, conditions, procedures, costs, rows",
+   "table_column": "member, member_policy, diagnosis, procedure_activity, claim",
+   "source": "raw_claims"
+  },
+  {
+   "app": "Care Coordinator Portal",
+   "screen": "Member 360",
+   "element": "Claim drawer",
    "api": "GET /api/claims/:claimId",
    "field": "activities[], labs[]",
-   "table_column": "claim_activity.* (one row per source line); lab_observation.* (OBSERVATION_SK, CODE, REQUESTEDVALUE)",
+   "table_column": "claim, claim_activity, lab_observation",
    "source": "raw_claims"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Risk bars C M K U A, total / 23, tier scale",
-   "api": "GET /api/members/:id/risk",
-   "field": "clinical_score … age_sex_score, total_risk_score, tier",
-   "table_column": "member_risk_result.* (risk_score_band, rule_tier)",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Extract reference total (matches / differs)",
-   "api": "GET /api/members/:id/risk",
-   "field": "extract_total_risk_score, matches_extract",
-   "table_column": "member_longitudinal.Total_risk_Score (kept as reference)",
-   "source": "longitudinal"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Cadence steps (Baseline, W2, M1 …)",
-   "api": "GET /api/members/:id/risk",
-   "field": "tier_rule.cadence, cadence_days",
-   "table_column": "rule_tier.cadence / cadence_days",
-   "source": "rulebook"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Care plan columns CURRENT / NEXT / FUTURE",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "current[], next[], future[]",
-   "table_column": "care_need.slot / rank (class_order, trigger_order → rule_slot)",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Need card: class, gap state, due, name, evidence, NBA, owner, done-when, live action",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "needs[].*, needs[].action",
-   "table_column": "care_need.*; action.*",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Gap lifecycle Potential → Verified → Scheduled → Reported → Closed",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "needs[].gap_state, gap_events[]",
-   "table_column": "care_need.gap_state; care_gap_event.from_state / to_state / moved_by (rule_gap_state)",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Done / Agreed / Declined / Carry / Book",
-   "api": "POST /api/portal/outcomes, POST /api/portal/appointments",
-   "field": "outcome; scheduled_date",
-   "table_column": "disposition_event; appointment; care_need (via rule_writeback)",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Closed pills (done ✓ / declined ✕, hold until)",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "closed[].status, gap_state, hold_until",
-   "table_column": "care_need.status / gap_state / hold_until",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Care gaps & plan",
-   "element": "Write-backs list",
-   "api": "GET /api/members/:id/care-plan",
-   "field": "needs[].last_outcome",
-   "table_column": "disposition_event.outcome / note / recorded_by / recorded_at",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Intelligence",
-   "element": "Chain: longitudinal → risk points → tier → triggers → alert → care plan",
-   "api": "GET /api/members/:id/risk, /evaluations",
-   "field": "components[].rules, total_risk_score, evaluations[].evaluation_result, alert",
-   "table_column": "member_rule_evaluation; member_risk_result; member_alert",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Intelligence",
-   "element": "Risk components table (score vs extract, scoring rules with inputs)",
-   "api": "GET /api/members/:id/risk",
-   "field": "components[].score, extract_score, rules[].rule_id / clinical_evidence",
-   "table_column": "member_rule_evaluation (rule_type = risk_points) rule_id (RS-*) / input_values_json / points_awarded; rule_risk_component",
-   "source": "rulebook"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Intelligence",
-   "element": "Trigger library rows (14): code, class, name, logic, inputs, evidence, result, NBA",
-   "api": "GET /api/members/:id/evaluations",
-   "field": "rule_id, need_class, trigger_name, evaluation_logic, input_values, clinical_evidence, evaluation_result, next_best_action, action_owner, done_when",
-   "table_column": "member_rule_evaluation.* ⋈ rule_trigger ⋈ rule_need_class ⋈ rule_action (conditions from rule_condition)",
-   "source": "rulebook"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Intelligence",
-   "element": "Alert reasons, priority, SLA",
-   "api": "GET /api/members/:id/risk",
-   "field": "alert.reasons, contact_priority, sla_days",
-   "table_column": "member_alert.reasons / contact_priority / sla_days (rule_alert, rule_contact_priority)",
-   "source": "rulebook"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Timeline",
-   "element": "Events by day: consent, call, decision, member said, care gap, appointment, note, task",
-   "api": "GET /api/members/:id/timeline",
-   "field": "events[].type / text / by / at",
-   "table_column": "consent_event; contact_attempt; disposition_event; member_assertion; care_gap_event; appointment; nurse_note; action (source ≠ engine)",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Actions (tasks)",
-   "element": "Tiles backlog / today / upcoming / done",
+   "screen": "Actions",
+   "element": "Tiles, calendar, list, filters",
    "api": "GET /api/portal/tasks?nurse_id",
-   "field": "status, due_date vs run_date",
-   "table_column": "task.status / due_date",
+   "field": "task_kind, status, due_date, gap_state, parent_action_id",
+   "table_column": "task.*, action.*, care_need.gap_state",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Actions (tasks)",
-   "element": "Kind filters (care plan, follow-ups, calls, escalations, nudges)",
-   "api": "GET /api/portal/tasks",
-   "field": "task_kind",
-   "table_column": "task.task_kind (from action.kind)",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Actions (tasks)",
-   "element": "Task line: title, member, kind, trigger, slot, gap state, assignee, due",
-   "api": "GET /api/portal/tasks",
-   "field": "title, display_name, member_id, task_kind, trigger_code, slot, gap_state, assignee_name, due_date",
-   "table_column": "task.title / due_date ⋈ action ⋈ care_need.trigger_code / slot / gap_state ⋈ nurse_user.name",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Actions (tasks)",
-   "element": "Tick (done)",
-   "api": "POST /api/portal/tasks/:id/complete",
-   "field": "status",
-   "table_column": "task.status / completed_at; action.status; care_need.gap_state → Reported (care-plan tasks)",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Actions (tasks)",
-   "element": "Book date",
-   "api": "POST /api/portal/tasks/:id/book",
-   "field": "booking_date",
-   "table_column": "task.booking_date; appointment; care_need.gap_state → Scheduled",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Actions (tasks)",
-   "element": "Calendar cells",
-   "api": "GET /api/portal/tasks",
-   "field": "due_date",
-   "table_column": "task.due_date",
+   "screen": "Actions",
+   "element": "Tick · Book",
+   "api": "POST /api/portal/tasks/:id/complete · POST /api/portal/tasks/:id/book",
+   "field": "status, booking_date",
+   "table_column": "task.*, disposition_event (done), care_gap_event",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
    "screen": "Care plans",
-   "element": "Member list (name, mask id, pathway, tier, R, open needs, alert or lock)",
+   "element": "Members table",
    "api": "GET /api/intelligence/members",
-   "field": "display_name, member_id, pathway, tier, total_risk_score, open_needs, alert_colour, consent_status",
-   "table_column": "member_identifier_crosswalk; member_risk_result; member_alert; care_need (count open); consent_event",
+   "field": "display_name, pathway, tier, total_risk_score, alert_colour, campaign_name, open_needs, consent_status, nurse_name",
+   "table_column": "member_risk, member_alert, care_need, worklist, consent_event",
    "source": "engine"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Care plans",
-   "element": "Selected plan",
-   "api": "GET /api/members/:id, /care-plan, /risk",
-   "field": "see Care gaps & plan",
-   "table_column": "see Care gaps & plan",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Analytics",
-   "element": "Tiles: members, awaiting a call, reached rate, triggers fired, CURRENT without action",
-   "api": "GET /api/intelligence/kpis, GET /api/portal/analytics",
-   "field": "members, worklist.today, reached/calls_made, triggers_fired, current_without_action",
-   "table_column": "member_longitudinal (count); worklist.list_status; contact_attempt.reached; member_rule_evaluation.evaluation_result; care_need ⋈ action",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Analytics",
-   "element": "Engagement funnel",
-   "api": "GET /api/intelligence/kpis, GET /api/portal/analytics",
-   "field": "evaluated, care_plans, on_todays_list, calls_made, reached, consents, outcomes[agreed], reported_not_in_claims, closed_in_claims",
-   "table_column": "member_risk_result; care_plan; worklist; contact_attempt; consent_event; disposition_event; care_need.gap_state",
+   "screen": "Shift analytics",
+   "element": "Tiles and Tasks by type",
+   "api": "GET /api/portal/analytics?nurse_id",
+   "field": "calls_made, reached, consents, outcomes, tasks_by_kind",
+   "table_column": "contact_attempt, consent_event, disposition_event, task",
    "source": "operational"
   },
   {
    "app": "Care Coordinator Portal",
-   "screen": "Analytics",
-   "element": "Trigger mix",
-   "api": "GET /api/intelligence/programme",
-   "field": "trigger_code, name, fired",
-   "table_column": "rule_trigger ⋈ member_rule_evaluation (evaluation_result = fired)",
-   "source": "engine"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Analytics",
-   "element": "Tasks by kind, care-gap states, outcomes recorded",
-   "api": "GET /api/portal/analytics",
-   "field": "tasks_by_kind, gaps, outcomes",
-   "table_column": "task.task_kind / status; care_need.gap_state; disposition_event.outcome",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Analytics",
-   "element": "Care team table",
-   "api": "GET /api/portal/analytics",
-   "field": "per_nurse[]",
-   "table_column": "nurse_user ⋈ worklist ⋈ task ⋈ contact_attempt",
-   "source": "operational"
-  },
-  {
-   "app": "Care Coordinator Portal",
-   "screen": "Analytics",
-   "element": "Programme by trigger",
-   "api": "GET /api/intelligence/programme",
-   "field": "fired, cannot_tell, open_needs, in_current, reported, closed_in_claims, declined, next_best_action, owner_role",
-   "table_column": "member_rule_evaluation; care_need; rule_action",
+   "screen": "Shift analytics",
+   "element": "Funnel, trigger mix, programme tiles and tables",
+   "api": "GET /api/intelligence/kpis · GET /api/intelligence/programme · GET /api/portal/analytics",
+   "field": "evaluated, care_plans, fired, per_nurse, gaps",
+   "table_column": "intelligence_run, member_rule_evaluation, care_need, worklist",
    "source": "engine"
   }
  ]

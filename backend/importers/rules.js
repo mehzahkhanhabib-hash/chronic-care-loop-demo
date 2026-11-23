@@ -39,6 +39,7 @@ function importRules(db) {
     loaded[table] = rows.length;
   }
   db.exec(VIEWS);
+  db.exec(fs.readFileSync(path.join(__dirname, '..', 'database', 'views_revised.sql'), 'utf8'));   // names from the Revised Member360/Longitudinal/CI workbook
   // rule_definition register
   db.run('DELETE FROM rule_definition');
   const ver = db.get('SELECT rule_version FROM rule_version LIMIT 1').rule_version;

@@ -2,21 +2,21 @@
 
 ## Chronic Care Studio (`apps/chronic-care-studio`)
 
-Reference: `data/source/Chronic-Care-Studio.html` (built from the Figma; the Figma files themselves were not in the brief).
+Reference: `data/source/Chronic-Care-Studio.html` = **Chronic-Care-Studio_7.html** ("Chronic Care Studio · Control Command Center", PureHealth branding). The Figma files themselves were not in the brief; this HTML is the Figma export and is treated as the design.
 
-- **Screen 1 · Cohort & campaign builder**: base population radios with live counts, rule builder (include / exclude, all / any), per-rule and funnel counts, unsupported-rule warnings, profile and sample members, compiled SQL, templates, cohort library with versions, campaign setup (automated vs business triggers, channels, capacity, start, priority), status changes, "hand off to care intelligence" (runs the engine). Every count is `POST /api/cohorts/estimate` over the 377-column table.
-- **Screen 2 · Care intelligence**: KPIs, filters, ranked member list, member panel (R/23 with the five components and caps, extract reference score, tier and cadence, alert and priority with reasons, 14-row rulebook table with evidence, inputs and logic, care plan CURRENT/NEXT/FUTURE/CLOSED, action chain), "Why this score" lineage drawer, programme per-trigger table, run history, run now.
-- **Screen 3 · Care portal**: nurse picker, today/queued/scheduled/nudge lists, the standalone portal embedded for the selected member, with a summary fallback.
-- Not reproduced: the knowledge-graph "describe" panel (replaced by a catalogue parser; the kit compiles SQL), the wearable early-warning tile (no wearable data in either workbook), PURA population (not in the extract, shown as 0).
+- **Screen 1 · Cohorts**: Build / Library / Campaigns. Base population with live counts, add-rule box and templates, include / exclude rules (all / any), "Who you've got" funnel, profile / sample / overlap, compiled SQL and checks, cohort library with versions, campaign calendar and cards, campaign dialog with the design's three steps (Who → What → Review), hand-off that runs the engine. Every count is `POST /api/cohorts/estimate` over the 377-column table.
+- **Screen 2 · Care intelligence**: filters, ranked member list, member header, risk card (R/23, five components, Excel reference), why now, care plan card ("in order · safety first" as designed, with a second view in the portal's Current / Next / Future layout with care-gap lifecycle and cadence), next-best-action card, programme per trigger, run history, "Why this score" lineage drawer.
+- **Screen 3 · Care portal**: nurse picker, today / queued / scheduled / nudge lists, the standalone portal embedded for the selected member, summary fallback.
+- Not reproduced: the knowledge-graph "describe" panel (the demo compiles SQL over the longitudinal table instead), the wearable early-warning tile (no wearable data in either workbook), PURA population (not in the extract, shown as 0).
 
 ## Care Coordinator Portal (`apps/care-coordinator-portal`)
 
-Reference: `data/source/Care-Coordinator-Portal.html` (its stylesheet was ported as `src/portal.css`).
+Reference: `data/source/Care-Coordinator-Portal.html` = **Care-Coordinator-Portal (3).html** ("Care Coordinator Portal · Control Command Center"); its stylesheet is ported as `src/portal.css`.
 
-- Login (demo accounts), queue with rulebook ordering, member workspace with tabs Call · Member 360 · Care gaps & plan · Intelligence · Timeline, tasks (list and calendar), care plans, analytics, dark mode.
-- Call workflow: contact → consent (gate G2) → review (member assertions) → actions per CURRENT need (agree / already done / declined / carry, book) → outcome; red-flag handling and the RED guard.
-- Member 360 reads only raw-claims endpoints; claim ids open a drawer with the activity lines and lab observations of that claim.
-- Not reproduced: the "Data lens" panel, wearables page and deterioration predictions (no source data), the free-text history builder, the pathway/decision-tree library pages, and the 0–100 priority score (replaced by the rulebook's P1–P4, R and tier). A red flag is recorded when the call starts (the API takes it on `POST /api/portal/calls`).
+- Login (design's sign-in screen mapped onto the demo nurse accounts), queue of flagged members in rulebook order, member workspace (call workflow, Member 360, care gaps and plan, intelligence, timeline), actions with calendar, care plans, shift analytics.
+- Call workflow: contact → consent (gate G2) → review (member assertions) → actions per CURRENT need (agree / already done / declined / carry, book) → outcome; RED guard and red-flag escalation.
+- Member 360 reads only raw-claims endpoints; claim ids open the activity lines and lab observations of that claim.
+- Not reproduced: wearables and deterioration predictions (no source data) and the 0–100 priority score (replaced by the rulebook's P1–P4, R and tier).
 
 ## Backend
 

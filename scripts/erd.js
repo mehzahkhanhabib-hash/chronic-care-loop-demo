@@ -18,7 +18,8 @@ const LAYERS = { claims: { 'A · Raw claims (claims.sqlite)': null }, ccl: {
   'B · Longitudinal features': ['member_longitudinal', 'member_identifier_crosswalk', 'longitudinal_field'],
   'C · Rule configuration': /^(rule_|risk_|clinical_|trigger_condition|next_best_action|contact_cadence|priority_rule|alert_rule|rule_input_binding)/,
   'D · Care intelligence outputs': ['intelligence_run', 'member_risk_result', 'member_rule_evaluation', 'member_alert', 'care_plan', 'care_need', 'action', 'worklist'],
-  'E · Operational and write-back': /^(nurse_user|cohort|cohort_rule|cohort_member|campaign|campaign_cohort|campaign_member|member_assignment|contact_attempt|call_interaction|consent_event|member_assertion|disposition_event|task|appointment|care_gap_event|nurse_note|audit_event|app_setting)$/ } };
+  'E · Operational and write-back': /^(nurse_user|cohort|cohort_rule|cohort_member|campaign|campaign_cohort|campaign_member|member_assignment|contact_attempt|call_interaction|consent_event|member_assertion|disposition_event|task|appointment|care_gap_event|nurse_note|audit_event|app_setting)$/,
+  'F · Views named by the Revised Member360 / Longitudinal / CI workbook': /^(longitudinal_member|trigger_input_binding|member_trigger_result|member_need|care_intelligence_)/ } };
 const REL = [ // child, fk, parent, pk, label
   ['member_policy', 'mask_id', 'member', 'mask_id', 'enrolled under'], ['claim', 'mask_id', 'member', 'mask_id', 'belongs to'], ['claim', 'provider_id', 'provider', 'provider_id', 'billed by'], ['claim', 'clinician_id', 'clinician', 'clinician_id', 'seen by'], ['claim', 'primary_diagnosis_id', 'diagnosis_code', 'diagnosis_id', 'coded'],
   ['claim_activity', 'claim_id', 'claim', 'claim_id', 'line of'], ['claim_activity', 'mask_id', 'member', 'mask_id', 'for'], ['lab_observation', 'activity_id', 'claim_activity', 'activity_id', 'observed on (ACTIVITY_ID)'], ['lab_observation', 'claim_id', 'claim', 'claim_id', 'copied from activity'],

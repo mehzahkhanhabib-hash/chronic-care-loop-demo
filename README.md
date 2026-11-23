@@ -18,6 +18,8 @@ Portal actions (consent · calls · dispositions · tasks) ─▶ operational ta
 
 The clinical logic is the **CCC Rulebook · T2D and Hypertension (20 Nov 2026)**, implemented as rule tables (`data/seed/rules/*.csv`), not code. See `docs/rulebook/`.
 
+Design references: the Studio reproduces `Chronic-Care-Studio_7.html`, the Portal reproduces `Care-Coordinator-Portal (3).html` (both in `data/source/`).
+
 ---
 
 ## 1. Requirements (Windows, macOS or Linux)
@@ -98,12 +100,12 @@ backend/
   database/                      adapter.js (sql.js; swap for MySQL here), schema_claims.sql, schema_ccl.sql
   importers/                     claims.js, longitudinal.js, rules.js, seed_operational.js, setup.js
   tests/                         node --test
-data/source/                     the supplied workbooks, rulebook and reference HTML (masked data)
+data/source/                     the supplied workbooks (raw claims ×3, longitudinal, rule database, portal UI mapping, Revised Member360/Longitudinal/CI, rulebook tables), the rulebook .docx, the reference HTML (Studio, Portal, Screen-to-Table lineage); masked data
 data/seed/                       deterministic CSV/TSV seeds derived 1:1 from the workbooks; rules/*.csv = the rule database
 data/db/                         claims.sqlite and ccl.sqlite (created by npm run setup; not committed)
 docs/
   data-model/                    DATA_MODEL.md (every table and column), ERD.md (Mermaid)
-  mappings/                      raw-claims-to-tables, longitudinal-catalogue (377), longitudinal-to-rules, LINEAGE.md + lineage.json
+  mappings/                      raw-claims-to-tables, longitudinal-catalogue (377), longitudinal-to-rules, revised-workbook (sheet → implementation), LINEAGE.md + lineage.json
   rulebook/                      RULEBOOK.md (how rules run), decisions.md (every mapping decision)
   api/API.md                     every endpoint with a real sample response
   demo-scenarios/                DEMO.md + screenshots

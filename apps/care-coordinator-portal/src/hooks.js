@@ -21,3 +21,7 @@ export const useUser = () => useContext(UserCtx);
 
 export const ToastCtx = createContext(() => {});
 export const useToast = () => useContext(ToastCtx);
+
+/** App-wide facts: the demo "today" (run_date), the health payload and bump() to refresh the header stats after a write. */
+export const AppCtx = createContext({ today: '2026-11-20', health: null, bump: () => {}, embedded: false });
+export const useApp = () => useContext(AppCtx);

@@ -12,6 +12,8 @@ module.exports = (env, argv) => ({
   plugins: [new HtmlWebpackPlugin({ template: './public/index.html', title: 'Chronic Care Studio' })],
   devtool: argv.mode === 'production' ? false : 'eval-cheap-module-source-map',
   devServer: { port: Number(process.env.STUDIO_PORT || 3000), historyApiFallback: true, hot: true, open: false,
-    proxy: [{ context: ['/api'], target: 'http://localhost:' + (process.env.PORT || 4000), changeOrigin: true }] },
+    proxy: [{ context: ['/api'], target: 'http://localhost:' + (process.env.PORT || 4000), changeOrigin: true },
+      // Screen 3 asks "is the portal app up?" through this same-origin route (the portal dev server refuses cross-origin probes); the iframe itself loads http://localhost:3001 directly.
+      { context: ['/__portal'], target: 'http://localhost:' + (process.env.PORTAL_PORT || 3001), changeOrigin: true, pathRewrite: { '^/__portal': '' } }] },
   performance: { hints: false },
 });

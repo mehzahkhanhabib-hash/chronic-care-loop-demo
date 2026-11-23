@@ -1,77 +1,83 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { api, getUser, setUser as persistUser } from './api.js';
-import { UserCtx, ToastCtx, useApi } from './hooks.js';
-import Icon from './icons.jsx';
+import { UserCtx, ToastCtx, AppCtx, useApi } from './hooks.js';
+import Icon, { Logo } from './icons.jsx';
 import Login from './pages/Login.jsx';
 import Queue from './pages/Queue.jsx';
 import MemberPage from './pages/MemberPage.jsx';
 import Tasks from './pages/Tasks.jsx';
 import CarePlans from './pages/CarePlans.jsx';
 import Analytics from './pages/Analytics.jsx';
+import { Loading } from './components/Bits.jsx';
 import { initials } from './util.js';
 
-const PAGES = [
-  ['/', 'queue', 'Nudge queue', 'Members flagged by the intelligence engine — consent first, then call, capture the outcome, move on.'],
-  ['/tasks', 'actions', 'Actions', 'Care coordinator tasks from each call: backlog, today and upcoming.'],
-  ['/care-plans', 'care', 'Care plans', 'Every member with a care plan — CURRENT, NEXT and FUTURE needs, write-backs and cadence.'],
-  ['/analytics', 'chart', 'Analytics', 'How the nudge operation is performing, from flag to follow-up.'],
-];
+const embedded = typeof window !== 'undefined' && window.parent !== window;
+const pad2 = n => String(n || 0).padStart(2, '0');
 
+/** Shell from the design: brand header with shift stats, 70 px rail, then the routed workspace. */
 export default function App() {
   const [user, setUserState] = useState(getUser());
-  const [toast, setToast] = useState(null);
-  const [theme, setTheme] = useState(() => { try { return localStorage.getItem('ccl.theme') || ''; } catch (e) { return ''; } });
-  const [railMin, setRailMin] = useState(false);
-  const loc = useLocation(); const nav = useNavigate();
+  const [toast, setToast] = useState({ msg: '', on: false });
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem('ccl.theme') === 'dark'; } catch (e) { return false; } });
+  const [tick, setTick] = useState(0);
+  const [autoTried, setAutoTried] = useState(!embedded);
+  const loc = useLocation(); const nav = useNavigate(); const timer = useRef(null);
   const setUser = u => { persistUser(u); setUserState(u); };
-  useEffect(() => { if (theme) document.documentElement.setAttribute('data-theme', theme); else document.documentElement.removeAttribute('data-theme'); try { localStorage.setItem('ccl.theme', theme); } catch (e) { /* ignore */ } }, [theme]);
-  const say = useMemo(() => (msg) => { setToast(msg); setTimeout(() => setToast(null), 2600); }, []);
-  const health = useApi(user ? '/health' : null);
-  const shift = useApi(user ? `/portal/analytics?nurse_id=${user.user_id}` : null, [loc.pathname]);
+  useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; try { localStorage.setItem('ccl.theme', dark ? 'dark' : 'light'); } catch (e) { /* ignore */ } }, [dark]);
+  useEffect(() => { if (embedded) document.documentElement.classList.add('emb'); }, []);
+  const say = useMemo(() => msg => { setToast({ msg, on: true }); clearTimeout(timer.current); timer.current = setTimeout(() => setToast(t => ({ ...t, on: false })), 2800); }, []);
+  const health = useApi('/health');
+  const shift = useApi(user ? `/portal/analytics?nurse_id=${user.user_id}` : null, [tick]);
+  const today = health.data ? health.data.run_date : '2026-11-20';
+  // Embedded in the Care studio (screen 3): sign in as the nurse the member is assigned to, so the frame opens straight on the member.
+  useEffect(() => { if (!embedded || user) { setAutoTried(true); return; } (async () => {
+    try { let uname = 'omar'; const mm = loc.pathname.match(/^\/member\/([^/]+)/);
+      if (mm) { const d = await api.get(`/members/${mm[1]}`); const us = await api.get('/users'); const u = us.find(x => d.assignment && x.user_id === d.assignment.nurse_id); if (u) uname = u.username; }
+      const r = await api.post('/auth/login', { username: uname, pin: '1234' }); setUser(r.user); } catch (e) { /* fall back to the sign-in screen */ } finally { setAutoTried(true); } })(); }, []); // eslint-disable-line
+  const ctx = useMemo(() => ({ today, health: health.data, bump: () => setTick(t => t + 1), embedded }), [today, health.data]);
+  if (!user && !autoTried) return <div className="app"><div className="pg"><Loading what="Opening the workstation" /></div></div>;
   if (!user && loc.pathname !== '/login') return <UserCtx.Provider value={{ user, setUser }}><Navigate to="/login" replace state={{ from: loc.pathname }} /></UserCtx.Provider>;
-  const page = PAGES.find(p => p[0] === loc.pathname) || (loc.pathname.startsWith('/member') ? ['/member', 'user', 'Member', 'One member across Member 360, care intelligence and the call.'] : PAGES[0]);
-  const dark = theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const done = shift.data ? shift.data.tasks_done : 0, total = shift.data ? shift.data.tasks_done + shift.data.tasks_open : 0;
-  const queueN = shift.data && shift.data.worklist ? (shift.data.worklist.find(w => w.list_status === 'today') || {}).n || 0 : 0;
+  const A = shift.data || {}, wlToday = ((A.worklist || []).find(w => w.list_status === 'today') || {}).n || 0;
+  const mm = loc.pathname.match(/^\/member\/([^/]+)(?:\/([^/]+))?/);
+  const view = loc.pathname.startsWith('/tasks') ? 'tasks' : loc.pathname.startsWith('/care-plans') ? 'care' : loc.pathname.startsWith('/analytics') ? 'analytics' : (mm && mm[2] === '360') || (loc.pathname === '/' && /view=360/.test(loc.search)) ? 'm360' : 'queue';
+  const go = v => { if (v === 'signout') { setUser(null); nav('/login'); return; }
+    if (v === 'queue') nav(mm ? `/member/${mm[1]}` : '/'); else if (v === 'm360') nav(mm ? `/member/${mm[1]}/360` : '/?view=360'); else nav({ tasks: '/tasks', care: '/care-plans', analytics: '/analytics' }[v]); };
+  const navBtn = (id, label, icon, badge) => <button className="nav" onClick={() => go(id)} aria-current={view === id ? 'page' : undefined}><Icon name={icon} /><span>{label}</span>{badge ? <span className="badge">{badge}</span> : null}</button>;
   return (
-    <UserCtx.Provider value={{ user, setUser }}><ToastCtx.Provider value={say}>
+    <UserCtx.Provider value={{ user, setUser }}><ToastCtx.Provider value={say}><AppCtx.Provider value={ctx}>
       {loc.pathname === '/login' ? <Login /> : (
-        <div className={'app' + (railMin ? ' rail-min' : '')} id="app">
-          <nav className="rail" aria-label="Main">
-            <div className="brand"><span className="logo">H</span><div className="brand-t"><b>HICC Workstation</b><small>Care Coordinator</small></div></div>
-            <div className="rail-group">Workstation</div>
-            {PAGES.map(p => <NavLink key={p[0]} to={p[0]} end className={({ isActive }) => 'nav' + (isActive ? ' on' : '')} title={p[2]}><Icon name={p[1]} /><span>{p[2]}</span>{p[0] === '/' && queueN ? <span className="badge">{queueN}</span> : null}</NavLink>)}
-            <div className="rail-sp" />
-            <button className="nav" onClick={() => setTheme(dark ? 'light' : 'dark')} title="Switch theme"><Icon name={dark ? 'sun' : 'moon'} /><span>{dark ? 'Light mode' : 'Dark mode'}</span></button>
-            <button className="nav" onClick={() => setRailMin(!railMin)} title={railMin ? 'Expand menu' : 'Collapse menu'}><Icon name={railMin ? 'chevr' : 'chev'} /><span>{railMin ? 'Expand menu' : 'Collapse menu'}</span></button>
-            <button className="nav" onClick={() => { setUser(null); nav('/login'); }} title="Sign out"><Icon name="x" /><span>Sign out</span></button>
-          </nav>
-          <div className="main">
-            <header className="top">
-              <h1>{page[2]}</h1><span className="sub">{page[3]}</span><span className="sp" />
-              <div className="shift">Shift · <b>{done}</b> of {total} tasks done<div className="bar"><i style={{ width: (total ? Math.round(done / total * 100) : 0) + '%' }} /></div></div>
-              {health.data ? <span className="pill line mono" title={`Rule version ${health.data.rule_version} · as-of ${health.data.as_of}`}>Run {health.data.latest_run && health.data.latest_run.run_id} · {health.data.run_date}</span> : null}
-              <div className="me"><span className="av">{initials(user.name)}</span><div><b>{user.name}</b><small>{user.role}</small></div></div>
-            </header>
-            <div className="body">
-              <section className="page" id="page">
-                <Routes>
-                  <Route path="/" element={<Queue />} />
-                  <Route path="/member/:id" element={<MemberPage />} />
-                  <Route path="/member/:id/:tab" element={<MemberPage />} />
-                  <Route path="/tasks" element={<Tasks />} />
-                  <Route path="/care-plans" element={<CarePlans />} />
-                  <Route path="/care-plans/:id" element={<CarePlans />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </section>
-              <span />
-            </div>
+        <div className="app" id="app">
+          <header className="top">
+            <div className="brand"><Logo /><div><div className="t1">Control Command Center</div><div className="t2">Nurse Workstation</div></div></div>
+            <div className="sp" />
+            <div className="stats" aria-label="Today" title={`Shift of ${user.name} · run ${health.data && health.data.latest_run ? health.data.latest_run.run_id : ''} · ${today} · rules ${health.data ? health.data.rule_version : ''}`}><span><b>{pad2(A.calls_made)}</b> Calls Today</span><span><b>{pad2(A.reached)}</b> Reached</span><span><b>{pad2(A.consents)}</b> Consented</span></div>
+            <button className="iconbtn" onClick={() => setDark(!dark)} aria-label={dark ? 'Light mode' : 'Dark mode'}><Icon name={dark ? 'sun' : 'moon'} /></button>
+            <button className="iconbtn" onClick={() => say(wlToday ? `${wlToday} member${wlToday > 1 ? 's' : ''} on your list today · ${A.tasks_open || 0} open tasks` : 'Nothing waiting on your list')} aria-label="Notifications"><Icon name="bell" />{wlToday ? <i className="dot" /> : null}</button>
+            <div className="me"><span className="av" aria-hidden="true">{initials(user.name)}</span><div><b>{user.name}</b><span>{user.role}</span></div></div>
+          </header>
+          <div className="body">
+            <nav className="rail" aria-label="Workstation">
+              <div className="grp">
+                {navBtn('queue', <>Nudge<br />Queue</>, 'queue', wlToday)}
+                {navBtn('m360', <>Member<br />360</>, 'm360')}
+                {navBtn('tasks', 'Tasks', 'tasks')}
+                {navBtn('care', <>Care<br />Plans</>, 'care')}
+                {navBtn('analytics', 'Analytics', 'analytics')}
+              </div>
+              <div className="grp">{navBtn('signout', 'Sign Out', 'signout')}</div>
+            </nav>
+            <Routes>
+              <Route path="/" element={<Queue />} />
+              <Route path="/member/:id/:tab?" element={<MemberPage />} />
+              <Route path="/tasks" element={<main className="main" id="main"><Tasks /></main>} />
+              <Route path="/care-plans/:id?" element={<main className="main" id="main"><CarePlans /></main>} />
+              <Route path="/analytics" element={<main className="main" id="main"><Analytics /></main>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </div>
         </div>)}
-      {toast ? <div className="toast" role="status">{toast}</div> : null}
-    </ToastCtx.Provider></UserCtx.Provider>
+      <div className={'toast' + (toast.on ? ' on' : '')} id="toast" role="status" aria-live="polite"><i /><span>{toast.msg}</span></div>
+    </AppCtx.Provider></ToastCtx.Provider></UserCtx.Provider>
   );
 }

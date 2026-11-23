@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api.js';
-import { useApi, useUser } from '../hooks.js';
-import { initials } from '../util.js';
-import { Loading, ErrorBox } from '../components/Bits.jsx';
+import { useApi, useUser, useToast } from '../hooks.js';
+import Icon, { Logo } from '../icons.jsx';
+import powered from '../assets/powered-by.png';
 
+/** Sign-in screen from the design. The SSO button signs in with the local demo account picked below (POST /api/auth/login). */
 export default function Login() {
-  const { setUser } = useUser(); const nav = useNavigate(); const loc = useLocation();
+  const { setUser } = useUser(); const say = useToast(); const nav = useNavigate(); const loc = useLocation();
   const users = useApi('/users');
   const [u, setU] = useState('omar'); const [pin, setPin] = useState('1234'); const [err, setErr] = useState(null); const [busy, setBusy] = useState(false);
-  const go = async (e) => { e && e.preventDefault(); setBusy(true); setErr(null);
-    try { const r = await api.post('/auth/login', { username: u, pin }); setUser(r.user); nav((loc.state && loc.state.from) || '/', { replace: true }); }
+  const go = async e => { e && e.preventDefault(); setBusy(true); setErr(null);
+    try { const r = await api.post('/auth/login', { username: u.trim(), pin }); setUser(r.user); say(`Signed in as ${r.user.name} · ${r.user.role}`); nav((loc.state && loc.state.from) || '/', { replace: true }); }
     catch (x) { setErr(x.message); } finally { setBusy(false); } };
-  return <div className="login"><form className="card" onSubmit={go}>
-    <div className="brand" style={{ padding: 0, marginBottom: 14 }}><span className="logo">H</span><div className="brand-t"><b style={{ color: 'var(--ink)' }}>HICC Workstation</b><small>Care Coordinator Portal · local demo sign-in</small></div></div>
-    <p className="muted" style={{ fontSize: 12 }}>Pick a care-team member. Demo PIN for everyone is <b className="mono">1234</b>. The user id is sent as <span className="mono">x-user</span> on every write so the audit trail shows who did what.</p>
-    {users.loading ? <Loading what="Loading care team" /> : users.error ? <ErrorBox error={users.error} retry={users.reload} /> : (
-      <div className="users">{users.data.map(x => <button type="button" key={x.user_id} className={'u' + (u === x.username ? ' on' : '')} onClick={() => setU(x.username)}><span className="av">{initials(x.name)}</span><span><b>{x.name}</b><small>{x.role}{x.daily_capacity ? ` · ${x.daily_capacity} calls/day` : ''}</small></span></button>)}</div>)}
-    <label className="fld">PIN<input id="pin" type="password" value={pin} onChange={e => setPin(e.target.value)} autoComplete="off" /></label>
-    {err ? <p className="note-warn" style={{ marginTop: 8 }}>{err}</p> : null}
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 14 }}><button className="btn pri" type="submit" disabled={busy || !u}>Sign in</button></div>
-  </form></div>;
+  return <div className="login" id="login">
+    <div className="l"><div className="tx"><h1>Reach the right member<br />before the admission.</h1><p>Your queue brings forward the people whose health is changing, explains why, and gives you everything you need to help them today.</p></div></div>
+    <div className="r"><div className="rh"><div><div className="t1">Control Command Center</div><div className="t2">Care Coordinator Portal</div></div><Logo /></div>
+      <form id="lf" autoComplete="off" onSubmit={go}><h2>Sign in</h2><p>PureHealth Cloud Account Sign In</p>
+        <label className="search"><Icon name="user" /><span className="sr">User</span><input id="em" type="text" placeholder="User ID" value={u} onChange={e => setU(e.target.value)} /></label>
+        <div className="accts" role="group" aria-label="Demo accounts">
+          {users.loading ? <span className="small muted">Loading care team…</span> : users.error ? <span className="small" style={{ color: 'var(--critical)' }}>Cannot reach the backend on :4000 ({users.error.message})</span>
+            : users.data.map(x => <button type="button" key={x.user_id} className="chip lg" aria-pressed={u === x.username} onClick={() => setU(x.username)} title={`${x.role}${x.daily_capacity ? ` · ${x.daily_capacity} calls/day` : ''}`}>{x.name} <span className="c">{x.role}</span></button>)}
+        </div>
+        <label className="search"><Icon name="lock" /><span className="sr">PIN</span><input id="pin" type="password" placeholder="PIN" value={pin} onChange={e => setPin(e.target.value)} autoComplete="off" /></label>
+        {err ? <p className="note n-crit" style={{ margin: '0 0 16px' }}>{err}</p> : null}
+        <button className="btn" type="submit" disabled={busy || !u}><Icon name="shield" /> Login with Daman SSO</button>
+        <p className="small muted" style={{ margin: '14px 0 0' }}>Local demo sign-in: pick a care-team member, PIN 1234. The user id is sent as x-user on every write.</p>
+      </form>
+      <div className="pw"><img src={powered} alt="Powered by PureCS, Daman and PURA" /></div></div>
+  </div>;
 }

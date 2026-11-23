@@ -4,8 +4,8 @@ Evidence gathered on the seeded demo database (`npm run setup`, rule version DEM
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| 1 | All three Chronic Care Studio screens implemented | ✅ | `apps/chronic-care-studio/src/screens/` (Builder, Intelligence, Portal); screenshots `docs/demo-scenarios/screenshots/studio-*.png`. The Figma files were not attached to the brief; the supplied `Chronic-Care-Studio.html` (built from the Figma) was used as the visual and functional reference. |
-| 2 | Care Coordinator Portal is a standalone React application | ✅ | `apps/care-coordinator-portal/` (React 18, React Router 6, Webpack 5, Babel); runs alone on port 3001 |
+| 1 | All three Chronic Care Studio screens implemented | ✅ | `apps/chronic-care-studio/src/screens/` (Builder, Intelligence, Portal); screenshots `docs/demo-scenarios/screenshots/studio-*.png`. The Figma files were not attached to the brief; the supplied `Chronic-Care-Studio_7.html` (Control Command Center design, built from the Figma) is the visual and functional reference. |
+| 2 | Care Coordinator Portal is a standalone React application | ✅ | `apps/care-coordinator-portal/` (React 18, React Router 6, Webpack 5, Babel), converted from `Care-Coordinator-Portal (3).html`; runs alone on port 3001 |
 | 3 | Neither application uses Vite | ✅ | `apps/*/webpack.config.js`, `babel.config.js`; no Vite dependency in any `package.json` |
 | 4 | Both applications connect to the same backend | ✅ | both `src/api.js` call `/api` → Express on :4000 (`backend/api/server.js`) |
 | 5 | SQLite contains all 250 longitudinal members | ✅ | test *longitudinal imported with all 377 columns and a crosswalk for every member*; `member_longitudinal` = 250 rows |
@@ -18,7 +18,7 @@ Evidence gathered on the seeded demo database (`npm run setup`, rule version DEM
 | 12 | Next-best actions and care plans generated | ✅ | 748 needs, 557 CURRENT with one open action each (test *every CURRENT need has one open action*); NBAs from `rule_action` |
 | 13 | Portal displays actual Care Intelligence output | ✅ | Portal reads `/api/members/:id`, `/risk`, `/evaluations`, `/care-plan`, `/portal/worklist`; screenshots `portal-*.png` |
 | 14 | Consent, calls, dispositions and task updates persist | ✅ | tests *write-back* and *consent gate*; events in `consent_event`, `contact_attempt`, `call_interaction`, `disposition_event`, `task`, `appointment`, `care_gap_event`; data survives restarts (SQLite files) |
-| 15 | Supplied mappings and lineage represented | ✅ | `docs/mappings/LINEAGE.md` + `lineage.json` (served at `/api/lineage`), `docs/data-model/DATA_MODEL.md`, `ERD.md`; rule tables keep the workbook's rule ids (Trig1–13, BPU, RS-C-001 …) |
+| 15 | Supplied mappings and lineage represented | ✅ | every object named in `CCC_Revised_Raw_Member360_Longitudinal_Care_Intelligence.xlsx` exists under that name (`docs/mappings/revised-workbook.md`, test *views named by the Revised … workbook*); `docs/mappings/LINEAGE.md` + `lineage.json` (served at `/api/lineage`), `docs/data-model/DATA_MODEL.md`, `ERD.md`; rule tables keep the workbook's rule ids (Trig1–13, BPU, RS-C-001 …) |
 | 16 | Two actual members demonstrable end to end | ✅ | `docs/demo-scenarios/DEMO.md`: x2063 (T2D) and x206 (T2D + HTN) with real inputs, expected evaluations and screenshots |
 | 17 | No critical buttons, forms or navigation non-functional | ✅ | every control in both apps calls an API or routes; verified with Playwright flows during the build (see `docs/demo-scenarios/BUILD_NOTES.md`) |
 | 18 | Both applications run locally without cloud dependencies | ✅ | sql.js (WebAssembly SQLite), Express, webpack dev server; no external services; Google Fonts is the only optional external request |
@@ -28,7 +28,7 @@ Evidence gathered on the seeded demo database (`npm run setup`, rule version DEM
 
 ## Known limitations (documented, not hidden)
 
-- The Figma designs were not part of the uploaded material; the Studio reproduces the supplied Studio HTML, which was itself built from the Figma.
+- The Figma designs were not part of the uploaded material; the Studio reproduces the supplied Chronic-Care-Studio_7.html, which was itself built from the Figma.
 - Wearable/CGM tiles of the original portal fixture have no source in either workbook and are not shown.
 - Hypoglycaemia and DKA score "per event" in the rulebook; the longitudinal file carries flags, so one event per flag is assumed (decision D4).
 - `Trig4` "2 or more ED visits in 90 days" is approximated from 12-month counts and the last ED date (decision D9).

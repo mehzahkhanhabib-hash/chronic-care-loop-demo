@@ -8,7 +8,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ccl-test-'));
 const src = path.join(__dirname, '..', '..', 'data', 'db');
 process.env.CCL_DB_DIR = tmp;
 process.env.PORT = '4321';
-for (const f of ['claims.sqlite', 'ccl.sqlite']) if (fs.existsSync(path.join(src, f))) fs.copyFileSync(path.join(src, f), path.join(tmp, f));
+if (!process.env.CCL_TEST_FRESH) for (const f of ['claims.sqlite', 'ccl.sqlite']) if (fs.existsSync(path.join(src, f))) fs.copyFileSync(path.join(src, f), path.join(tmp, f));   // CCL_TEST_FRESH=1 rebuilds from the seeds instead
 
 const { openDatabase } = require('../database/adapter');
 const E = require('../rule-engine/engine');
@@ -71,6 +71,12 @@ test('a second run is idempotent on needs and keeps nurse work', () => {
   assert.equal(r.members, 250);
   assert.equal(ccl.count('care_need'), needs);
   assert.ok(ccl.get("SELECT count(*) AS n FROM care_need WHERE status <> 'open'").n >= done);
+});
+test('views named by the Revised Member360/Longitudinal/CI workbook exist with the expected grain', () => {
+  for (const v of ['longitudinal_member', 'care_intelligence_member_v']) assert.equal(ccl.count(v), 250);
+  assert.equal(ccl.count('care_intelligence_trigger_v'), 250 * 14);
+  assert.ok(ccl.count('care_intelligence_need_v') > 0 && ccl.count('member_need') === ccl.count('care_need'));
+  for (const v of ['member360_v', 'member360_claims_v', 'member360_labs_v']) assert.ok(claims.count(v) > 0);
 });
 test('API answers the main reads', async () => {
   const { start } = require('../api/server');

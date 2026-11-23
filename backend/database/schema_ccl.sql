@@ -340,3 +340,6 @@ CREATE TABLE audit_event (
 CREATE TABLE app_setting (key TEXT PRIMARY KEY, value TEXT);
 
 -- Design-name views over the rule tables (workbook names → CSV tables). Created after the CSV tables exist.
+
+-- ── Names from CCC_Revised_Raw_Member360_Longitudinal_Care_Intelligence.xlsx (START – Architecture, Join Keys, Portal Output Contract) ──
+-- The workbook names the same objects slightly differently; these views expose them under its names so the sheets can be read against the database 1:1.

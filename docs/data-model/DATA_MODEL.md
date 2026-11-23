@@ -232,6 +232,68 @@ facilities
 | `category` | TEXT |  |
 | `payable` | REAL |  |
 
+### `member360_claims_v` (view)
+
+| column | type | note |
+|---|---|---|
+| `claim_id` | TEXT |  |
+| `member_id` | TEXT |  |
+| `episode_id` | TEXT |  |
+| `service_date` | TEXT |  |
+| `bg_ipop` | TEXT |  |
+| `admit_desc` | TEXT |  |
+| `admit_date` | TEXT |  |
+| `discharge_date` | TEXT |  |
+| `los_days` | REAL |  |
+| `provider_id` | TEXT |  |
+| `facility_name` | TEXT |  |
+| `clinician_id` | TEXT |  |
+| `clinician_name` | TEXT |  |
+| `specialty` | TEXT |  |
+| `primary_diagnosis_id` | TEXT |  |
+| `payable` | REAL |  |
+| `claimed` | REAL |  |
+| `denial` | REAL |  |
+
+### `member360_labs_v` (view)
+
+| column | type | note |
+|---|---|---|
+| `observation_id` | TEXT |  |
+| `observation_sk` | TEXT |  |
+| `member_id` | TEXT |  |
+| `activity_id` | TEXT |  |
+| `claim_id` | TEXT |  |
+| `result_date` | TEXT |  |
+| `code` | TEXT |  |
+| `description` | TEXT |  |
+| `requested_value` | TEXT |  |
+| `approved_value` | TEXT |  |
+| `units` | TEXT |  |
+| `value_num` | REAL |  |
+| `value_unit` | TEXT |  |
+
+### `member360_v` (view)
+
+| column | type | note |
+|---|---|---|
+| `member_id` | TEXT |  |
+| `gender` | TEXT |  |
+| `age_category` | TEXT |  |
+| `member_relation` | TEXT |  |
+| `plan` | TEXT |  |
+| `product` | TEXT |  |
+| `network_group` | TEXT |  |
+| `network_desc` | TEXT |  |
+| `effective_date` | TEXT |  |
+| `expiry_date` | TEXT |  |
+| `cancellation_date` | TEXT |  |
+| `claim_count` | INTEGER |  |
+| `activity_count` | INTEGER |  |
+| `payable_total` | REAL |  |
+| `first_service_date` | TEXT |  |
+| `last_service_date` | TEXT |  |
+
 ### `pharmacy_claim` (view)
 
 | column | type | note |
@@ -967,3 +1029,509 @@ the portal's task list (follow-ups, bookings, checks) — a projection of action
 | `completed_at` | TEXT |  |
 | `booking_date` | TEXT |  |
 | `created_at` | TEXT |  |
+
+## Layer F · Views named by the Revised Member360 / Longitudinal / CI workbook
+
+### `care_intelligence_member_v` (view)
+
+| column | type | note |
+|---|---|---|
+| `run_id` | INTEGER |  |
+| `member_id` | TEXT |  |
+| `latest_hba1c_value` | REAL |  |
+| `latest_hba1c_date` | TEXT |  |
+| `latest_sbp` | REAL |  |
+| `latest_dbp` | REAL |  |
+| `latest_egfr` | REAL |  |
+| `risk_score` | INTEGER |  |
+| `risk_tier` | INTEGER |  |
+| `tier_label` | TEXT |  |
+| `alert_colour` | TEXT |  |
+| `safety_flag` | INTEGER |  |
+| `contact_priority` | TEXT |  |
+| `pathway` | TEXT |  |
+| `snapshot_total_risk_score` | INTEGER |  |
+| `snapshot_risk_tier` | TEXT |  |
+| `consent_status` | TEXT |  |
+
+### `care_intelligence_need_v` (view)
+
+| column | type | note |
+|---|---|---|
+| `need_id` | TEXT |  |
+| `trigger_result_id` | INTEGER |  |
+| `member_id` | TEXT |  |
+| `trigger_id` | TEXT |  |
+| `trigger_name` | TEXT |  |
+| `need_class` | TEXT |  |
+| `class_order` | TEXT |  |
+| `need_position` | INTEGER |  |
+| `lane` | TEXT |  |
+| `status` | TEXT |  |
+| `gap_state` | TEXT |  |
+| `due_date` | TEXT |  |
+| `nba_text` | TEXT |  |
+| `owner` | TEXT |  |
+| `done_when` | TEXT |  |
+| `why_now` | TEXT |  |
+
+### `care_intelligence_trigger_v` (view)
+
+| column | type | note |
+|---|---|---|
+| `trigger_result_id` | INTEGER |  |
+| `run_id` | INTEGER |  |
+| `member_id` | TEXT |  |
+| `trigger_id` | TEXT |  |
+| `trigger_name` | TEXT |  |
+| `trigger_state` | TEXT |  |
+| `evidence_json` | TEXT |  |
+| `clinical_evidence` | TEXT |  |
+| `condition_text` | TEXT |  |
+| `rule_version` | TEXT |  |
+
+### `care_intelligence_worklist_v` (view)
+
+| column | type | note |
+|---|---|---|
+| `run_id` | INTEGER |  |
+| `member_id` | TEXT |  |
+| `nurse_id` | TEXT |  |
+| `nurse_name` | TEXT |  |
+| `rank_no` | INTEGER |  |
+| `nurse_rank` | INTEGER |  |
+| `list_status` | TEXT |  |
+| `contact_priority` | TEXT |  |
+| `alert_colour` | TEXT |  |
+| `tier` | INTEGER |  |
+| `safety_flag` | INTEGER |  |
+| `campaign_id` | TEXT |  |
+| `action_id` | INTEGER |  |
+| `due_by` | TEXT |  |
+| `current_needs` | TEXT |  |
+
+### `longitudinal_member` (view)
+
+| column | type | note |
+|---|---|---|
+| `mask_id` | TEXT |  |
+| `GENDER` | TEXT |  |
+| `AGE` | REAL |  |
+| `NATIONALITY` | TEXT |  |
+| `policy_group` | TEXT |  |
+| `policy_type` | TEXT |  |
+| `cohort_t2d_l12m` | REAL |  |
+| `cohort_htn_l12m` | REAL |  |
+| `t2d_identified_by` | TEXT |  |
+| `htn_identified_by` | TEXT |  |
+| `t2d_category` | TEXT |  |
+| `htn_category` | TEXT |  |
+| `GWP` | REAL |  |
+| `Risk Premium` | REAL |  |
+| `Exclusion_nonactiveaccounts` | REAL |  |
+| `Exclusion_op_consultations_encounter` | REAL |  |
+| `Exclusion_alreadyenrolled` | REAL |  |
+| `Exclusion` | REAL |  |
+| `P1_Complication` | REAL |  |
+| `P2_Recurrent_ED_IP` | REAL |  |
+| `P3_slipping` | REAL |  |
+| `P5_newlydiagnosed` | REAL |  |
+| `P3_offradar` | REAL |  |
+| `P4_uncontrolled` | REAL |  |
+| `Persona` | TEXT |  |
+| `Trig1_HbA1c_above_target` | REAL |  |
+| `Trig2a_NoACEiARB_KidneyOrCAD` | REAL |  |
+| `Trig2b_ACEi_plus_ARB` | REAL |  |
+| `Trig2_HTN_tx_review` | REAL |  |
+| `Trig3a_hypoglycemia_rev` | REAL |  |
+| `Trig3b_glucagon_not_dispensed` | REAL |  |
+| `Trig3_hypoglycemia_tx` | REAL |  |
+| `Trig4a_NoFollowup_post_discharge` | REAL |  |
+| `Trig4b_postdischarge_medsgap` | REAL |  |
+| `Trig4_post_discharge_care` | REAL |  |
+| `Trig5a_Kidney_screen_due` | REAL |  |
+| `Trig5b_CKD_monitoring` | REAL |  |
+| `Trig5c_Neph_due` | REAL |  |
+| `Trig5_Kidney_check` | REAL |  |
+| `Trig6_HbA1c_due` | REAL |  |
+| `Trig7_Renal_Potassium_due` | REAL |  |
+| `Trig8_nutrition_due` | REAL |  |
+| `Trig9_medication_adherence` | REAL |  |
+| `Trig10_new_diagnosis` | REAL |  |
+| `Trig11_annual_labs_due` | REAL |  |
+| `Trig12_eyeexam_due` | REAL |  |
+| `Trig13_highriskfoot_monitor` | REAL |  |
+| `# of triggers` | REAL |  |
+| `HbA1c_score` | REAL |  |
+| `Clinical_score` | REAL |  |
+| `Comorbid_complication_score` | REAL |  |
+| `eGFR + UACR points` | REAL |  |
+| `Kidney_score` | REAL |  |
+| `Utilization_score` | REAL |  |
+| `Age_sex_score` | REAL |  |
+| `Total_risk_Score` | REAL |  |
+| `Risk_tier` | TEXT |  |
+| `Cohort_allocation` | TEXT |  |
+| `Initial_target_cohort` | REAL |  |
+| `Priority_clinical_review` | REAL |  |
+| `Last_HbA1c_Value` | REAL |  |
+| `Last_HbA1c_Date` | TEXT |  |
+| `Last_SystolicPressure_Value` | REAL |  |
+| `Last_SystolicPressure_Date` | TEXT |  |
+| `Last_DiastolicPressure_Value` | REAL |  |
+| `Last_DiastolicPressure_Date` | TEXT |  |
+| `Last_MeasuredBMI_Value` | REAL |  |
+| `Last_MeasuredBMI_Date` | TEXT |  |
+| `Last_eGFR_Value` | REAL |  |
+| `Last_eGFR_Date` | TEXT |  |
+| `last_fastingplasmaglucose_value` | REAL |  |
+| `last_fastingplasmaglucose_date` | TEXT |  |
+| `last_2hourplasmaglucose_value` | REAL |  |
+| `last_2hourplasmaglucose_date` | TEXT |  |
+| `last_randomplasmaglucose_value` | REAL |  |
+| `last_randomplasmaglucose_date` | TEXT |  |
+| `last_hba1c_date2` | TEXT |  |
+| `last_lipid_panel_date` | TEXT |  |
+| `last_urine_albumin_date` | TEXT |  |
+| `last_renal_panel_date` | TEXT |  |
+| `last_egfr_test_date` | TEXT |  |
+| `last_retinal_screen_date` | TEXT |  |
+| `last_liver_function_date` | TEXT |  |
+| `last_cbc_date` | TEXT |  |
+| `last_vitb12_date` | TEXT |  |
+| `last_potassium_date` | TEXT |  |
+| `last_endocrinology_visit` | TEXT |  |
+| `last_podiatry_visit` | TEXT |  |
+| `last_foot_exam` | TEXT |  |
+| `last_ophthalmology_visit` | TEXT |  |
+| `last_cardiology_visit` | TEXT |  |
+| `last_nephrology_visit` | TEXT |  |
+| `last_dietitian_visit` | TEXT |  |
+| `last_diabeducator_visit` | TEXT |  |
+| `first_e11_date` | TEXT |  |
+| `first_htn_date` | TEXT |  |
+| `first_dyslipidemia_date` | TEXT |  |
+| `flag_ckd` | REAL |  |
+| `last_ckd_date` | TEXT |  |
+| `flag_hypertensive_kidney_disease` | REAL |  |
+| `last_hypertensive_kidney_disease_date` | TEXT |  |
+| `flag_kidney_failure` | REAL |  |
+| `last_kidney_failure_date` | TEXT |  |
+| `flag_acute_kidney_injury` | REAL |  |
+| `last_acute_kidney_injury_date` | TEXT |  |
+| `flag_any_kidney_disease` | REAL |  |
+| `last_any_kidney_disease_date` | TEXT |  |
+| `flag_dialysis` | REAL |  |
+| `last_dialysis_date` | TEXT |  |
+| `flag_stroke` | REAL |  |
+| `last_stroke_date` | TEXT |  |
+| `flag_heart_failure` | REAL |  |
+| `last_heart_failure_date` | TEXT |  |
+| `flag_mi` | REAL |  |
+| `last_mi_date` | TEXT |  |
+| `flag_other_cvd` | REAL |  |
+| `last_other_cvd_date` | TEXT |  |
+| `dm_complications` | TEXT |  |
+| `dm_complication_count` | REAL |  |
+| `flag_dm_kidney` | REAL |  |
+| `last_dm_kidney_date` | TEXT |  |
+| `flag_dm_eye` | REAL |  |
+| `last_dm_eye_date` | TEXT |  |
+| `flag_dm_neuropathy` | REAL |  |
+| `last_dm_neuropathy_date` | TEXT |  |
+| `flag_dm_circulatory` | REAL |  |
+| `last_dm_circulatory_date` | TEXT |  |
+| `flag_dm_foot` | REAL |  |
+| `last_dm_foot_date` | TEXT |  |
+| `flag_amputation` | REAL |  |
+| `last_amputation_date` | TEXT |  |
+| `flag_dm_hypoglycaemia` | REAL |  |
+| `last_dm_hypoglycaemia_date` | TEXT |  |
+| `flag_dm_hyperglycaemic_crisis` | REAL |  |
+| `last_dm_hyperglycaemic_crisis_date` | TEXT |  |
+| `flag_sepsis` | REAL |  |
+| `last_sepsis_date` | TEXT |  |
+| `flag_ischemic_heart_disease` | REAL |  |
+| `last_ischemic_heart_disease_date` | TEXT |  |
+| `flag_dm_hypoglycaemia_last90days` | REAL |  |
+| `flag_EDorIP_with_hypoglycaemia_last90days` | REAL |  |
+| `flag_hypo_hyper_glycemia_last6months` | REAL |  |
+| `flag_oncology_l12m` | REAL |  |
+| `flag_oncology_l24m` | REAL |  |
+| `last_oncology_claim_date` | TEXT |  |
+| `oncology_dx_codes` | TEXT |  |
+| `flag_benign_neoplasm_l12m` | REAL |  |
+| `flag_excl_palliative_hospice_ltc_l12m` | REAL |  |
+| `excl_palliative_hospice_ltc_reason` | TEXT |  |
+| `flag_dialysis_l12m` | REAL |  |
+| `flag_av_access_procedure_l12m` | REAL |  |
+| `last_av_access_date_l12m` | TEXT |  |
+| `flag_excl_transplant_l24m` | REAL |  |
+| `excl_transplant_reason` | TEXT |  |
+| `flag_excl_adv_neuro_congenital_l12m` | REAL |  |
+| `excl_adv_neuro_congenital_reason` | TEXT |  |
+| `flag_excl_psych_sud_dementia_l12m` | REAL |  |
+| `excl_psych_sud_dementia_reason` | TEXT |  |
+| `flag_excl_ventilator_tpn_homenursing_l12m` | REAL |  |
+| `excl_ventilator_tpn_homenursing_reason` | TEXT |  |
+| `home_nursing_days_l12m` | REAL |  |
+| `flag_excl_pregnant_postpartum` | REAL |  |
+| `excl_pregnancy_status` | TEXT |  |
+| `max_episode_share_since2024` | REAL |  |
+| `max_episode_type` | TEXT |  |
+| `max_episode_dmhtn_related` | REAL |  |
+| `flag_excl_single_episode_gt60pct` | REAL |  |
+| `specialty_rx_share_since2024` | REAL |  |
+| `flag_excl_specialty_rx_gt60pct` | REAL |  |
+| `specialty_rx_areas` | TEXT |  |
+| `gp_claims_6m` | REAL |  |
+| `specialist_claims_6m` | REAL |  |
+| `last_ip_admit_date` | TEXT |  |
+| `last_ip_discharge_date` | TEXT |  |
+| `second_last_ip_discharge_date` | TEXT |  |
+| `last_ip_facility` | TEXT |  |
+| `last_ip_dx` | TEXT |  |
+| `last_ip_dx_desc` | TEXT |  |
+| `last_ip_drg_desc` | TEXT |  |
+| `last_ip_discharge_type` | TEXT |  |
+| `last_visit_date` | TEXT |  |
+| `first_visit_after_discharge` | TEXT |  |
+| `days_discharge_to_first_visit` | REAL |  |
+| `flag_no_visit_after_discharge` | REAL |  |
+| `flag_missing_T2Drefill_post_last_discharge` | REAL |  |
+| `flag_missing_HTNrefill_post_last_discharge` | REAL |  |
+| `last_ed_visit_date` | TEXT |  |
+| `last_ed_facility` | TEXT |  |
+| `last_ed_dx` | TEXT |  |
+| `last_ed_dx_desc` | TEXT |  |
+| `active_drug_class_count` | REAL |  |
+| `active_drug_classes` | TEXT |  |
+| `flag_active_ACEinhibitor` | REAL |  |
+| `flag_active_ARBinhibitor` | REAL |  |
+| `flag_active_insulin` | REAL |  |
+| `flag_active_sulfonylurea` | REAL |  |
+| `flag_overlap_ACE_ARB_more_than_30days` | REAL |  |
+| `flag_glucagon_last12months` | REAL |  |
+| `flag_no_glucagon_last12months` | REAL |  |
+| `distinct_medicines_90d` | REAL |  |
+| `t2d_drug_classes_l12m` | TEXT |  |
+| `pdc_metformin` | REAL |  |
+| `pdc_sglt2` | REAL |  |
+| `pdc_dpp4` | REAL |  |
+| `pdc_glp1` | REAL |  |
+| `pdc_sulfonylurea` | REAL |  |
+| `pdc_tzd` | REAL |  |
+| `pdc_any_t2d_noninsulin` | REAL |  |
+| `first_t2d_fill_date` | TEXT |  |
+| `latest_new_t2d_class_start_date` | TEXT |  |
+| `last_t2d_fill_date` | TEXT |  |
+| `days_since_last_t2d_fill` | REAL |  |
+| `days_since_t2d_supply_ran_out` | REAL |  |
+| `flag_t2d_rx_gap_over_30d` | REAL |  |
+| `htn_drug_classes_l12m` | TEXT |  |
+| `pdc_acei` | REAL |  |
+| `pdc_arb` | REAL |  |
+| `pdc_ccb` | REAL |  |
+| `pdc_beta_blocker` | REAL |  |
+| `pdc_thiazide` | REAL |  |
+| `pdc_mra` | REAL |  |
+| `pdc_any_htn` | REAL |  |
+| `first_htn_fill_date` | TEXT |  |
+| `latest_new_htn_class_start_date` | TEXT |  |
+| `first_ACE_ARB_MRA_thiazide_fill_date` | TEXT |  |
+| `last_htn_fill_date` | TEXT |  |
+| `days_since_last_htn_fill` | REAL |  |
+| `days_since_htn_supply_ran_out` | REAL |  |
+| `flag_htn_rx_gap_over_30d` | REAL |  |
+| `er_visits_6m` | REAL |  |
+| `ip_admissions_6m` | REAL |  |
+| `ed_visits_l12m` | REAL |  |
+| `ip_admissions_l12m` | REAL |  |
+| `l12m_payable_allcause` | REAL |  |
+| `l12m_payable_T2D` | REAL |  |
+| `l12m_payable_non_phg_T2D` | REAL |  |
+| `l12m_share_non_phg_T2D` | REAL |  |
+| `l12m_payable_HTN` | REAL |  |
+| `l12m_payable_non_phg_HTN` | REAL |  |
+| `l12m_share_non_phg_HTN` | REAL |  |
+| `encounters_l12m` | REAL |  |
+| `encounters_l12m_op` | REAL |  |
+| `encounters_l12m_ed` | REAL |  |
+| `encounters_l12m_ip` | REAL |  |
+| `providers_l12m` | REAL |  |
+| `phg_share_l12m_encounters` | REAL |  |
+| `mediclinic_share_l12m_encounters` | REAL |  |
+| `nmc_share_l12m_encounters` | REAL |  |
+| `burjeel_share_l12m_encounters` | REAL |  |
+| `mubadala_share_l12m_encounters` | REAL |  |
+| `others_share_l12m_encounters` | REAL |  |
+| `top_groupownerlevel_l12m_encounters` | TEXT |  |
+| `top_groupownerlevel_l12m_encounter_share` | REAL |  |
+| `top_groupownerlevel_l12m_op_encounters` | TEXT |  |
+| `top_groupownerlevel_l12m_op_encounter_share` | REAL |  |
+| `encounters_l12m_op_consultations` | REAL |  |
+| `top_groupownerlevel_l12m_op_encounter_consultations_share` | REAL |  |
+| `top_groupownerlevel_l12m_op_consultations` | TEXT |  |
+| `l12m_payable_op` | REAL |  |
+| `l12m_payable_ip` | REAL |  |
+| `l12m_payable_ed` | REAL |  |
+| `l12m_payable_T2D_op` | REAL |  |
+| `l12m_payable_T2D_ip` | REAL |  |
+| `l12m_payable_T2D_ed` | REAL |  |
+| `l12m_payable_HTN_op` | REAL |  |
+| `l12m_payable_HTN_ip` | REAL |  |
+| `l12m_payable_HTN_ed` | REAL |  |
+| `l12m_drugs_payable` | REAL |  |
+| `l12m_consultation_payable` | REAL |  |
+| `l12m_labandpath_payable` | REAL |  |
+| `l12m_DRG_payable` | REAL |  |
+| `l12m_procedures_payable` | REAL |  |
+| `l12m_others_payable` | REAL |  |
+| `l12m_T2D_drugs_payable` | REAL |  |
+| `l12m_T2D_consultation_payable` | REAL |  |
+| `l12m_T2D_labandpath_payable` | REAL |  |
+| `l12m_T2D_DRG_payable` | REAL |  |
+| `l12m_T2D_procedures_payable` | REAL |  |
+| `l12m_T2D_others_payable` | REAL |  |
+| `l12m_HTN_drugs_payable` | REAL |  |
+| `l12m_HTN_consultation_payable` | REAL |  |
+| `l12m_HTN_labandpath_payable` | REAL |  |
+| `l12m_HTN_DRG_payable` | REAL |  |
+| `l12m_HTN_procedures_payable` | REAL |  |
+| `l12m_HTN_others_payable` | REAL |  |
+| `last_claim_date` | TEXT |  |
+| `last_claim_costblocks` | TEXT |  |
+| `last_claim_facilities` | TEXT |  |
+| `last_claim_specialties` | TEXT |  |
+| `last_claim_dx_codes` | TEXT |  |
+| `last_claim_dx_desc` | TEXT |  |
+| `last_claim_medicines` | TEXT |  |
+| `last_claim_activities` | TEXT |  |
+| `last_claim_payable` | REAL |  |
+| `flag_current_smoker_l12m` | REAL |  |
+| `last_smoking_evidence_date` | TEXT |  |
+| `flag_former_smoker_code` | REAL |  |
+| `flag_ckd_l12m` | REAL |  |
+| `flag_hypertensive_kidney_disease_l12m` | REAL |  |
+| `flag_kidney_failure_l12m` | REAL |  |
+| `flag_acute_kidney_injury_l12m` | REAL |  |
+| `flag_any_kidney_disease_l12m` | REAL |  |
+| `flag_stroke_l12m` | REAL |  |
+| `flag_heart_failure_l12m` | REAL |  |
+| `flag_mi_l12m` | REAL |  |
+| `flag_other_cvd_l12m` | REAL |  |
+| `flag_dm_kidney_l12m` | REAL |  |
+| `flag_dm_eye_l12m` | REAL |  |
+| `flag_dm_neuropathy_l12m` | REAL |  |
+| `flag_dm_circulatory_l12m` | REAL |  |
+| `flag_dm_foot_l12m` | REAL |  |
+| `flag_amputation_l12m` | REAL |  |
+| `flag_dm_hypoglycaemia_l12m` | REAL |  |
+| `flag_dm_hyperglycaemic_crisis_l12m` | REAL |  |
+| `flag_sepsis_l12m` | REAL |  |
+| `flag_ischemic_heart_disease_l12m` | REAL |  |
+| `flag_dyslipidemia_l12m` | REAL |  |
+| `flag_obesity` | REAL |  |
+| `flag_cad_mi_l12m` | REAL |  |
+| `flag_stroke_tia_l12m` | REAL |  |
+| `flag_pad_l12m` | REAL |  |
+| `flag_dm_retinopathy_l12m` | REAL |  |
+| `flag_peripheral_neuropathy_l12m` | REAL |  |
+| `flag_dm_foot_ulcer_l12m` | REAL |  |
+| `flag_major_amputation_l12m` | REAL |  |
+| `flag_dka_l12m` | REAL |  |
+| `Last_UACR_Value` | REAL |  |
+| `Last_UACR_Date` | TEXT |  |
+| `ckd_stage_l12m` | TEXT |  |
+| `l12m_payable_DiaborHTNrelated` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_drugs_inside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_inside` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_outside` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_drugs_outside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_consultation_inside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_consultation_outside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_labandpath_inside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_labandpath_outside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_DRG_inside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_DRG_outside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_procedures_inside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_procedures_outside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_others_inside_network` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_others_outside_network` | REAL |  |
+| `payable_last24months_DiaborHTNrelated` | REAL |  |
+| `payable_since2024_DiaborHTNrelated` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_op` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_ip` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_ed` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_drugs` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_consultation` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_labandpath` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_DRG` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_procedures` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_others` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_PHG` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_Mediclinic` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_NMC` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_Burjeel` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_Mubadala` | REAL |  |
+| `l12m_payable_DiaborHTNrelated_OtherProviders` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated` | REAL |  |
+| `l12m_encounters_op_DiaborHTNrelated` | REAL |  |
+| `l12m_encounters_ed_DiaborHTNrelated` | REAL |  |
+| `l12m_encounters_ip_DiaborHTNrelated` | REAL |  |
+| `top_groupownerlevel_l12m_op_DiaborHTNrelated_encounters` | TEXT |  |
+| `top_groupownerlevel_l12m_op_DiaborHTNrelated_encounter_share` | REAL |  |
+| `providers_l12m_DiaborHTNrelated` | REAL |  |
+| `l12m_ED_visits_DiaborHTNrelated` | REAL |  |
+| `l12m_IP_admissions_DiaborHTNrelated` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated_PHG` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated_Mediclinic` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated_NMC` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated_Burjeel` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated_Mubadala` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated_OtherProviders` | REAL |  |
+| `l12m_encounters_DiaborHTNrelated_total` | REAL |  |
+
+### `member_need` (view)
+
+| column | type | note |
+|---|---|---|
+| `need_id` | TEXT |  |
+| `member_id` | TEXT |  |
+| `trigger_id` | TEXT |  |
+| `trigger_result_id` | INTEGER |  |
+| `need_class` | TEXT |  |
+| `position` | INTEGER |  |
+| `lane` | TEXT |  |
+| `status` | TEXT |  |
+| `gap_state` | TEXT |  |
+| `due_date` | TEXT |  |
+| `nba_text` | TEXT |  |
+| `action_owner` | TEXT |  |
+| `done_when` | TEXT |  |
+| `run_id` | INTEGER |  |
+
+### `member_trigger_result` (view)
+
+| column | type | note |
+|---|---|---|
+| `trigger_result_id` | INTEGER |  |
+| `run_id` | INTEGER |  |
+| `member_id` | TEXT |  |
+| `trigger_id` | TEXT |  |
+| `state` | TEXT |  |
+| `input_features` | TEXT |  |
+| `evidence_json` | TEXT |  |
+| `clinical_evidence` | TEXT |  |
+| `evaluation_logic` | TEXT |  |
+| `evaluated_at` | TEXT |  |
+
+### `trigger_input_binding` (view)
+
+| column | type | note |
+|---|---|---|
+| `binding_id` |  |  |
+| `rule_id` | TEXT |  |
+| `longitudinal_column` | TEXT |  |
+| `role` | TEXT |  |
+| `note` | TEXT |  |
