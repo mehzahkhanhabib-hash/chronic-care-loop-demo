@@ -89,6 +89,16 @@ test('studio scope: a handed-off cohort is what intelligence and the portal work
   assert.ok(wl.items.every(i => SC.memberIds(ccl, s).includes(i.member_id)));
   SC.setScope(ccl, {}); assert.equal(SC.getScope(ccl), null);
 });
+test('write-backs land on the calendar and the queue is rebuilt live', () => {
+  const W = require('../rule-engine/writeback'); const P = require('../services/portal');
+  const row = ccl.get("SELECT w.member_id, w.nurse_id FROM worklist w WHERE w.list_status = 'today' LIMIT 1");
+  const r = W.recordAppointment(ccl, { member_id: row.member_id, appointment_type: 'callback', scheduled_date: '2026-11-24', scheduled_time: '10:30', nurse_id: row.nurse_id });
+  assert.equal(r.task.due_date, '2026-11-24'); assert.equal(r.task.due_time, '10:30'); assert.equal(r.task.assignee, row.nurse_id);
+  assert.ok(P.tasks(ccl, { member_id: row.member_id }).some(t => t.task_id === r.task.task_id));
+  W.recordCall(ccl, { member_id: row.member_id, nurse_id: row.nurse_id, reached: false });
+  const wl = ccl.get('SELECT a.status FROM worklist w JOIN action a ON a.action_id = w.action_id WHERE w.member_id = ?', [row.member_id]);
+  assert.ok(!wl || wl.status === 'open');
+});
 test('API answers the main reads', async () => {
   const { start } = require('../api/server');
   const srv = await start();

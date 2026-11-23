@@ -12,6 +12,9 @@ const E = require('./engine');
 const U = require('../importers/util');
 
 const runDate = db => db.get("SELECT value FROM app_setting WHERE key='run_date'").value;
+const memberNurse = (db, memberId, fallback) => (db.get('SELECT nurse_id FROM member_assignment WHERE member_id = ?', [memberId]) || {}).nurse_id || fallback || null;
+/** After every write-back the queue is rebuilt so it points at each member's next open outreach (same step 7 as the run). */
+const requeue = db => E.buildWorklist(db);
 const assert = (c, msg) => { if (!c) { const e = new Error(msg); e.status = 400; throw e; } };
 
 function recordConsent(db, { member_id, consent_status, nurse_id, call_id, scope = 'outreach', duration_seconds, note }) {
@@ -21,6 +24,7 @@ function recordConsent(db, { member_id, consent_status, nurse_id, call_id, scope
     for (const a of db.all("SELECT action_id FROM action WHERE member_id = ? AND status = 'open' AND kind IN ('call','nudge','retry','follow_up')", [member_id])) E.closeAction(db, a.action_id, 'cancelled');
   }
   audit(db, nurse_id, 'consent_event', `${member_id}: ${consent_status}`);
+  requeue(db);
   return { consent_event_id: id, consent_status };
 }
 function consentStatus(db, memberId) { const r = db.get('SELECT consent_status, recorded_at FROM consent_event WHERE member_id = ? ORDER BY recorded_at DESC, consent_event_id DESC LIMIT 1', [memberId]); return r ? r.consent_status : 'pending'; }
@@ -54,6 +58,7 @@ function recordCall(db, { member_id, nurse_id, action_id, campaign_id, reached, 
     else if (pr === 'P1') created.push(E.createAction(db, { member_id, kind: 'escalation', title: `P1 member not reached after ${cap} attempts: clinical lead to decide`, channel: 'Call', owner_role: 'Clinical lead', assignee: 'U-0310', due_date: runDate(db), parent_action_id: open ? open.action_id : null, source: 'followup' }));
   }
   audit(db, nurse_id, 'contact_attempt', `${member_id}: ${reached ? 'reached' : 'not reached'}`);
+  requeue(db);
   return { attempt_id: attempt, call_id, created_actions: created };
 }
 function setCallStage(db, callId, stage) { db.run('UPDATE call_interaction SET stage = ?, ended_at = CASE WHEN ? = ? THEN ? ELSE ended_at END WHERE call_id = ?', [stage, stage, 'closed', U.now(), callId]); }
@@ -97,17 +102,41 @@ function recordOutcome(db, { member_id, need_id, action_id, call_id, outcome, no
   // promote the next need into CURRENT (G7: one action per CURRENT need)
   if (num(rule.promote_next)) E.reslot(db, R, member_id, null, assignee);
   audit(db, by, 'disposition_event', `${member_id}: ${outcome}${need ? ' on ' + need.trigger_code : ''}`);
+  requeue(db);
   return { disposition_id: disp, created_actions: created, need: need ? db.get('SELECT * FROM care_need WHERE need_id = ?', [need.need_id]) : null };
+}
+
+/** Book / follow-up call / callback from the portal. Writes the appointment AND a dated task for the member's nurse, so it is on the calendar.
+ *  A booking against a care need moves its gap to Scheduled and stamps the booking date on that need's care-plan task. */
+const APPT_TITLE = { callback: 'Callback', 'Follow-up call': 'Follow-up call' };
+function recordAppointment(db, b) {
+  assert(b.member_id, 'member_id is required'); assert(b.scheduled_date, 'scheduled_date is required');
+  const need = b.need_id ? db.get('SELECT n.*, t.name AS need_name FROM care_need n JOIN rule_trigger t ON t.trigger_code = n.trigger_code WHERE n.need_id = ?', [b.need_id]) : null;
+  const assignee = memberNurse(db, b.member_id, b.nurse_id);
+  const type = b.appointment_type || 'booking';
+  const isCall = /callback|call/i.test(type);
+  const title = need ? (isCall ? `Follow-up call: ${need.need_name}` : `Booked: ${need.next_best_action}`) : (APPT_TITLE[type] || type) + (b.note ? ` · ${b.note}` : '');
+  const actionId = E.createAction(db, { member_id: b.member_id, need_id: need ? need.need_id : null, kind: 'follow_up', title: title + (b.scheduled_time ? ` · ${b.scheduled_time}` : ''), channel: isCall ? 'Call' : 'Appointment', owner_role: need ? need.action_owner : 'Nurse', assignee, due_date: b.scheduled_date, due_time: b.scheduled_time || null, parent_action_id: b.action_id || null, source: 'portal' });
+  const id = db.run('INSERT INTO appointment (member_id, need_id, action_id, appointment_type, provider_name, scheduled_date, scheduled_time, status, booked_by, booked_at) VALUES (?,?,?,?,?,?,?,?,?,?)',
+    [b.member_id, need ? need.need_id : null, actionId, type, b.provider_name || null, b.scheduled_date, b.scheduled_time || null, 'booked', b.nurse_id || null, U.now()]).lastId;
+  if (need) {
+    db.run("UPDATE task SET booking_date = ? WHERE action_id IN (SELECT action_id FROM action WHERE need_id = ? AND kind = 'care_plan' AND status = 'open')", [b.scheduled_date, need.need_id]);
+    if (['Potential', 'Verified'].includes(need.gap_state)) { E.gapEvent(db, need, 'Scheduled', 'nurse:' + (b.nurse_id || '?'), `${type} ${b.scheduled_date}`); db.run("UPDATE care_need SET gap_state = 'Scheduled' WHERE need_id = ?", [need.need_id]); }
+  }
+  audit(db, b.nurse_id, 'appointment', `${b.member_id}: ${type} ${b.scheduled_date}`);
+  requeue(db);
+  return { appointment_id: id, action_id: actionId, task: db.get('SELECT * FROM task WHERE action_id = ?', [actionId]) };
 }
 
 function completeTask(db, taskId, { nurse_id, booking_date, note }) {
   const t = db.get('SELECT * FROM task WHERE task_id = ?', [taskId]); assert(t, 'task not found');
-  if (booking_date) { db.run('UPDATE task SET booking_date = ? WHERE task_id = ?', [booking_date, taskId]); const a = db.get('SELECT * FROM action WHERE action_id = ?', [t.action_id]); if (a && a.need_id) { db.run('INSERT INTO appointment (member_id, need_id, action_id, appointment_type, scheduled_date, status, booked_by, booked_at) VALUES (?,?,?,?,?,?,?,?)', [t.member_id, a.need_id, a.action_id, 'booking', booking_date, 'booked', nurse_id || null, U.now()]); const n = db.get('SELECT * FROM care_need WHERE need_id = ?', [a.need_id]); if (n && ['Potential', 'Verified'].includes(n.gap_state)) { E.gapEvent(db, n, 'Scheduled', 'nurse:' + (nurse_id || '?'), 'Booked for ' + booking_date); db.run("UPDATE care_need SET gap_state = 'Scheduled' WHERE need_id = ?", [a.need_id]); } } return { task: db.get('SELECT * FROM task WHERE task_id = ?', [taskId]) }; }
+  if (booking_date) { const a = db.get('SELECT * FROM action WHERE action_id = ?', [t.action_id]); db.run('UPDATE task SET booking_date = ? WHERE task_id = ?', [booking_date, taskId]); const r = recordAppointment(db, { member_id: t.member_id, need_id: a && a.need_id, action_id: t.action_id, appointment_type: 'booking', scheduled_date: booking_date, nurse_id }); return { task: db.get('SELECT * FROM task WHERE task_id = ?', [taskId]), booked: r.task }; }
   if (t.action_id) { const a = db.get('SELECT * FROM action WHERE action_id = ?', [t.action_id]); if (a && a.need_id && a.kind === 'care_plan') return recordOutcome(db, { member_id: t.member_id, action_id: a.action_id, outcome: 'done', nurse_id, note }); E.closeAction(db, t.action_id, 'done'); }
   else db.run("UPDATE task SET status = 'done', completed_at = ? WHERE task_id = ?", [U.now(), taskId]);
   audit(db, nurse_id, 'task', `${t.member_id}: task ${taskId} done`);
+  requeue(db);
   return { task: db.get('SELECT * FROM task WHERE task_id = ?', [taskId]) };
 }
 function audit(db, actor, entity, detail) { db.run('INSERT INTO audit_event (at, actor, operation, entity, detail, endpoint) VALUES (?,?,?,?,?,?)', [U.now(), actor || 'portal', 'WRITE', entity, detail, '/api/portal']); }
 
-module.exports = { recordConsent, consentStatus, recordCall, setCallStage, recordAssertion, recordOutcome, completeTask };
+module.exports = { recordAppointment, recordConsent, consentStatus, recordCall, setCallStage, recordAssertion, recordOutcome, completeTask };

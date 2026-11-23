@@ -32,3 +32,17 @@ Reference: `data/source/Care-Coordinator-Portal.html` = **Care-Coordinator-Porta
 - `member_longitudinal` keeps every header of the longitudinal workbook as a column; rule evaluation reads it through a typed vector (dates as days before the as-of date).
 - The engine reproduces the workbook's own component scores for 250/250 members once three mapping decisions are recorded as rule rows (D1–D3 in `docs/rulebook/decisions.md`).
 - Raw claims are normalised into member, member_policy, provider, clinician, diagnosis_code, claim, claim_activity, lab_observation and observation_dictionary; encounter, pharmacy_claim, procedure_activity and diagnosis are views.
+
+## Calendar write-backs and worklist orchestration audit (2026-11-23)
+
+Write-backs reported as missing from the Tasks calendar. An audit of the nurse worklist orchestration found these issues, now fixed:
+
+| # | Finding | Fix |
+|---|---|---|
+| 1 | Book, follow-up call date and callback only inserted an `appointment` row; the calendar reads `task`, so nothing appeared | `writeback.recordAppointment` also creates a `follow_up` action and a dated task (with `due_time`) for the member's assigned nurse; booking against a need stamps `booking_date` and moves the gap to Scheduled. The `/portal/tasks/:id/book` path uses the same write-back |
+| 2 | The worklist was only built by the nightly run, so after a write-back it could point at a done or cancelled action | `engine.buildWorklist` is called after every write-back (consent, call, outcome, task done, appointment, reassignment) |
+| 3 | The queue row picked a member's lowest `action_id`, not the earliest due outreach | Ordered by due date, then action id |
+| 4 | "Verify in claims" checks (channel Claims) counted as nurse outreach | Excluded from the worklist |
+| 5 | `nurse_rank` could start at 0 or repeat when scheduled rows existed | Ranks are 1..n per nurse; follow-ups and retries with a future date are `scheduled`, nudges are `nudge`, the rest fill capacity as `today` then `queued` (no capacity = unlimited) |
+
+Checked after a simulated shift and again after the next run: one row per member, contiguous ranks, today ≤ capacity, rows point at open outreach owned by the member's nurse, every CURRENT need has an action, every action has a calendar task with matching status, assignee and due date, at most one open call/retry/nudge per member, retries escalate after three failed attempts, declined consent removes the member from every list. A new backend test covers the calendar write-back.

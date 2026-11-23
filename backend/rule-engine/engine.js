@@ -101,7 +101,7 @@ function createAction(db, a) {
   const r = db.run('INSERT INTO action (member_id, need_id, kind, title, channel, owner_role, assignee, due_date, status, attempt, parent_action_id, source, run_id, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     [a.member_id, a.need_id || null, a.kind, a.title, a.channel || null, a.owner_role || null, a.assignee || null, a.due_date || null, 'open', a.attempt || 1, a.parent_action_id || null, a.source || 'engine', a.run_id || null, U.now()]);
   const kindMap = { care_plan: 'nba', call: 'call', nudge: 'nudge', follow_up: 'follow_up', retry: 'call', escalation: 'escalation' };
-  db.run('INSERT INTO task (action_id, member_id, title, task_kind, assignee, due_date, status, created_at) VALUES (?,?,?,?,?,?,?,?)', [r.lastId, a.member_id, a.title, kindMap[a.kind] || a.kind, a.assignee || null, a.due_date || null, 'open', U.now()]);
+  db.run('INSERT INTO task (action_id, member_id, title, task_kind, assignee, due_date, due_time, status, created_at) VALUES (?,?,?,?,?,?,?,?,?)', [r.lastId, a.member_id, a.title, a.task_kind || kindMap[a.kind] || a.kind, a.assignee || null, a.due_date || null, a.due_time || null, 'open', U.now()]);
   return r.lastId;
 }
 function closeAction(db, actionId, status, when) {
@@ -230,30 +230,46 @@ function run(db, { triggeredBy = 'api', memberIds = null } = {}) {
   }
 
   // 7 · worklist
-  db.run('DELETE FROM worklist WHERE run_id <> ?', [runId]);
-  const rows = db.all(`SELECT a.member_id, a.action_id, a.assignee, a.due_date, a.kind, r.tier, r.safety_flag, al.alert_colour, al.contact_priority, al.sla_days, cm.campaign_id, c.priority AS campaign_priority
-    FROM action a JOIN member_risk_result r ON r.member_id = a.member_id AND r.run_id = ? JOIN member_alert al ON al.member_id = a.member_id AND al.run_id = ?
-    LEFT JOIN campaign_member cm ON cm.member_id = a.member_id AND cm.run_id = ? LEFT JOIN campaign c ON c.campaign_id = cm.campaign_id
-    WHERE a.status = 'open' AND a.kind IN ('call','retry','nudge','follow_up','escalation') AND a.action_id = (SELECT MIN(action_id) FROM action b WHERE b.member_id = a.member_id AND b.status = 'open' AND b.kind IN ('call','retry','nudge','follow_up','escalation'))`, [runId, runId, runId]);
-  const hoursPast = r => (Date.parse(runDate) - Date.parse(r.due_date || runDate)) / 3600000;
-  rows.sort((a, b) => (b.safety_flag || b.alert_colour === 'RED' ? 1 : 0) - (a.safety_flag || a.alert_colour === 'RED' ? 1 : 0) || b.tier - a.tier || (a.campaign_priority || 9) - (b.campaign_priority || 9) || hoursPast(b) - hoursPast(a) || a.member_id.localeCompare(b.member_id));
-  const perNurse = {};
-  const cap = Object.fromEntries(nurses.map(n => [n.user_id, n.daily_capacity]));
-  const insW = db.prepare('INSERT OR REPLACE INTO worklist VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-  rows.forEach((r, i) => {
-    perNurse[r.assignee] = (perNurse[r.assignee] || 0) + 1;
-    // each nurse works the queue in rule order up to daily capacity; follow-ups wait for their date
-    const status = r.kind === 'nudge' ? 'nudge' : (r.kind === 'follow_up' && (r.due_date || runDate) > runDate) ? 'scheduled' : (perNurse[r.assignee] <= (cap[r.assignee] || 25) ? 'today' : 'queued');
-    if (status === 'scheduled') perNurse[r.assignee]--;
-    const needs = db.all("SELECT n.trigger_code, t.name FROM care_need n JOIN rule_trigger t ON t.trigger_code = n.trigger_code WHERE n.member_id = ? AND n.slot = 'CURRENT' AND n.status = 'open' ORDER BY n.rank", [r.member_id]).map(n => n.name).join(' · ');
-    insW([runId, r.member_id, r.assignee, i + 1, perNurse[r.assignee], status, r.contact_priority, r.alert_colour, r.tier, r.safety_flag, r.campaign_id, r.action_id, r.due_date, needs]);
-  });
-  insW.free();
-  stats.worklist_members = rows.length;
   db.commit();
+  stats.worklist_members = buildWorklist(db, runId);
   db.run('UPDATE intelligence_run SET finished_at = ?, members_evaluated = ?, stats_json = ? WHERE run_id = ?', [U.now(), members.length, JSON.stringify(stats), runId]);
   db.run('INSERT INTO audit_event (at, actor, operation, entity, detail, endpoint) VALUES (?,?,?,?,?,?)', [U.now(), triggeredBy, 'WRITE', 'intelligence_run', `run ${runId}: ${JSON.stringify(stats)}`, '/api/intelligence/runs']);
   return { run_id: runId, ...stats };
+}
+
+/** Step 7 · the nurse worklist (rulebook §4). Rebuilt at the end of every run AND after every portal write-back, so the queue always
+ *  points at each member's next open outreach. One row per member: the open call / retry / nudge / member follow-up / escalation that is
+ *  due first (back-office "Verify in claims" checks are tasks, not outreach). Programme rank follows rule_queue_order (safety or RED,
+ *  tier, campaign priority, hours past SLA); each nurse gets today's list up to daily capacity, the rest is queued; a retry or follow-up
+ *  with a future date is scheduled; P4 is a digital nudge. nurse_rank numbers every row of a nurse 1..n. */
+function buildWorklist(db, runId) {
+  runId = runId || (db.get('SELECT MAX(run_id) AS r FROM intelligence_run WHERE finished_at IS NOT NULL OR run_id = (SELECT MAX(run_id) FROM intelligence_run)') || {}).r;
+  if (!runId) return 0;
+  const runDate = (db.get("SELECT value FROM app_setting WHERE key = 'run_date'") || {}).value;
+  const OUT = "a.status = 'open' AND a.kind IN ('call','retry','nudge','follow_up','escalation') AND COALESCE(a.channel, '') <> 'Claims'";
+  const rows = db.all(`SELECT a.member_id, a.action_id, a.assignee, a.due_date, a.kind, r.tier, r.safety_flag, al.alert_colour, al.contact_priority, al.sla_days, cm.campaign_id, c.priority AS campaign_priority
+    FROM action a JOIN member_risk_result r ON r.member_id = a.member_id AND r.run_id = ? JOIN member_alert al ON al.member_id = a.member_id AND al.run_id = ?
+    LEFT JOIN campaign_member cm ON cm.member_id = a.member_id AND cm.run_id = ? LEFT JOIN campaign c ON c.campaign_id = cm.campaign_id
+    WHERE ${OUT} AND a.action_id = (SELECT b.action_id FROM action b WHERE b.member_id = a.member_id AND ${OUT.replace(/a\./g, 'b.')} ORDER BY b.due_date, b.action_id LIMIT 1)`, [runId, runId, runId]);
+  const hoursPast = r => (Date.parse(runDate) - Date.parse(r.due_date || runDate)) / 3600000;
+  rows.sort((a, b) => (b.safety_flag || b.alert_colour === 'RED' ? 1 : 0) - (a.safety_flag || a.alert_colour === 'RED' ? 1 : 0) || b.tier - a.tier || (a.campaign_priority || 9) - (b.campaign_priority || 9) || hoursPast(b) - hoursPast(a) || a.member_id.localeCompare(b.member_id));
+  const cap = Object.fromEntries(db.all('SELECT user_id, daily_capacity FROM nurse_user').map(n => [n.user_id, n.daily_capacity]));
+  const rank = {}, used = {};
+  const own = !db._inTx; if (own) db.begin();
+  db.run('DELETE FROM worklist');
+  const insW = db.prepare('INSERT OR REPLACE INTO worklist VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+  rows.forEach((r, i) => {
+    rank[r.assignee] = (rank[r.assignee] || 0) + 1;
+    let status;
+    if (r.kind === 'nudge') status = 'nudge';
+    else if (['follow_up', 'retry'].includes(r.kind) && (r.due_date || runDate) > runDate) status = 'scheduled';
+    else { used[r.assignee] = (used[r.assignee] || 0) + 1; const c = cap[r.assignee]; status = c === null || c === undefined || used[r.assignee] <= c ? 'today' : 'queued'; }
+    const needs = db.all("SELECT t.name FROM care_need n JOIN rule_trigger t ON t.trigger_code = n.trigger_code WHERE n.member_id = ? AND n.slot = 'CURRENT' AND n.status = 'open' ORDER BY n.rank", [r.member_id]).map(n => n.name).join(' · ');
+    insW([runId, r.member_id, r.assignee, i + 1, rank[r.assignee], status, r.contact_priority, r.alert_colour, r.tier, r.safety_flag, r.campaign_id, r.action_id, r.due_date, needs]);
+  });
+  insW.free();
+  if (own) db.commit();
+  return rows.length;
 }
 
 /** Evaluate one member without writing anything (used by the "explain" endpoints). */
@@ -267,4 +283,4 @@ function preview(db, memberId) {
   return { member_id: memberId, risk, triggers: trig, alert: assessAlert(R, m, fired), dropped: m.dropped };
 }
 
-module.exports = { run, preview, reslot, createAction, closeAction, gapEvent, addDays, scoreRisk, evaluateTriggers, assessAlert };
+module.exports = { run, preview, buildWorklist, reslot, createAction, closeAction, gapEvent, addDays, scoreRisk, evaluateTriggers, assessAlert };

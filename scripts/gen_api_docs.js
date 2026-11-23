@@ -55,7 +55,7 @@ const E = [
   ['Portal', 'POST', '/portal/assertions', { member_id: 'x206', need_id: 'N-x206-Trig13', assertion_text: 'Foot exam done in March at a private clinic', nurse_id: 'U-0150' }, 'What the member said (moves Potential → Verified, never closes)'],
   ['Portal', 'POST', '/portal/outcomes', { need_id: 'N-x206-Trig1', outcome: 'agreed', nurse_id: 'U-0150' }, 'Disposition on a need or action: done | agreed | declined | carried | not_reached (rule_writeback)'],
   ['Portal', 'POST', '/portal/tasks/1/complete', { nurse_id: 'U-0150' }, 'Complete a task (a care-plan task records outcome=done)'],
-  ['Portal', 'POST', '/portal/appointments', { member_id: 'x206', need_id: 'N-x206-Trig13', appointment_type: 'foot', scheduled_date: '2026-12-01', nurse_id: 'U-0150' }, 'Book an appointment (gap → Scheduled)'],
+  ['Portal', 'POST', '/portal/appointments', { member_id: 'x206', need_id: 'N-x206-Trig13', appointment_type: 'foot', scheduled_date: '2026-12-01', nurse_id: 'U-0150' }, 'Book / follow-up call / callback: writes the appointment AND a dated task for the assigned nurse (shows on the Tasks calendar), moves the gap to Scheduled, rebuilds the worklist'],
   ['Portal', 'POST', '/portal/notes', { member_id: 'x206', text: 'Prefers calls after 4 pm', nurse_id: 'U-0150' }, 'Nurse note'],
   ['Admin', 'POST', '/admin/reset', {}, 'Reset ccl.sqlite to the demo state (keeps imported claims)'],
 ];
