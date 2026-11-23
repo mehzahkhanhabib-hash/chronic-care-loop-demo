@@ -21,8 +21,11 @@ function worklist(db, query = {}) {
     WHERE ${w.join(' AND ')} ORDER BY w.nurse_rank`, p);
   return { run_id: run, count: rows.length, scope: scope ? { kind: scope.kind, id: scope.id, label: scope.label, members: scope.ids.length } : null, items: rows.map(r => ({ ...r, consent_status: r.consent_status || 'pending' })) };
 }
-function tasks(db, { nurse_id, status, member_id, kind } = {}) {
+function tasks(db, query = {}) {
+  const { nurse_id, status, member_id, kind } = query;
   const w = ['1=1'], p = [];
+  const scope = SC.resolve(db, query);   // ?scope=active: only the members of the cohort handed off from the Studio (same list as the queue)
+  if (scope) w.push(`t.member_id IN (${scope.sqlList})`);
   if (nurse_id) { w.push('t.assignee = ?'); p.push(nurse_id); } if (status) { w.push('t.status = ?'); p.push(status); } if (member_id) { w.push('t.member_id = ?'); p.push(member_id); } if (kind) { w.push('t.task_kind = ?'); p.push(kind); }
   return db.all(`SELECT t.*, x.display_name, a.kind AS action_kind, a.need_id, a.owner_role, a.parent_action_id, n.trigger_code, n.slot, n.gap_state, u.name AS assignee_name FROM task t JOIN member_identifier_crosswalk x ON x.member_id = t.member_id LEFT JOIN action a ON a.action_id = t.action_id LEFT JOIN care_need n ON n.need_id = a.need_id LEFT JOIN nurse_user u ON u.user_id = t.assignee WHERE ${w.join(' AND ')} ORDER BY CASE WHEN t.status = 'open' THEN 0 ELSE 1 END, t.due_date, t.task_id`, p);
 }

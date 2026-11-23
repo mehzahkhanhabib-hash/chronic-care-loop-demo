@@ -22,6 +22,7 @@ Reference: `data/source/Care-Coordinator-Portal.html` = **Care-Coordinator-Porta
 
 - Hand-off from the campaign dialog stores the campaign in `app_setting.studio_scope` (`POST /api/studio/scope`). Members = the campaign's include cohorts minus its exclude cohorts (`cohort_member`), control group included and flagged.
 - `GET /api/intelligence/members|kpis?scope=active` and `GET /api/portal/worklist?scope=active` return only those members. The Studio header counts, the intelligence list, filters and KPIs, screen 3 and the portal queue all follow the scope; *Show all members* (Studio) and *My list* (portal) switch it off.
+- The portal Tasks page follows the same scope as the queue: with a cohort handed off it shows every nurse's tasks for those members (`GET /api/portal/tasks?scope=active`); *Only my tasks* and *Cohort members* switch it.
 - Screen 3 has one bar: the nurse the embedded portal is signed in as (passed as `?as=<username>`), the scope chip, list counts, open in portal, summary view. The embedded portal hides its own header.
 - Care plans: the Current · Next · Future board is the default in the Studio and the first panel of the portal's care plan, with the same card content (class, due, next best action, owner, done when, rule, action line).
 - Intelligence shows the tier (Tier n · label) and the contact priority (Pn · colour) on every member row and in the member header.

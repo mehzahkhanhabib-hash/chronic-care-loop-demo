@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { useApi, useUser, useToast, useApp } from '../hooks.js';
+import { useScopeSwitch } from '../scope.js';
 import { Loading, ErrorBox, Tile } from '../components/Bits.jsx';
 import TaskRow, { isAgreed } from '../components/TaskRow.jsx';
 import Icon from '../icons.jsx';
@@ -14,12 +15,15 @@ const sortD = (a, b) => (a.due_date || '').localeCompare(b.due_date || '') || (a
 /** Actions page (design: tiles, calendar or list, filters). GET /portal/tasks · tick = POST /portal/tasks/:id/complete · Book = POST /portal/tasks/:id/book. */
 export default function Tasks() {
   const { user } = useUser(); const say = useToast(); const nav = useNavigate(); const { today, bump } = useApp();
-  const [mine, setMine] = useState(true); const [f, setF] = useState('all'); const [view, setView] = useState('calendar'); const [calM, setCalM] = useState(0); const [calDay, setCalDay] = useState(null); const [mem, setMem] = useState(''); const [busy, setBusy] = useState(false); const [more, setMore] = useState({});
-  const t = useApi(`/portal/tasks${mine ? `?nurse_id=${user.user_id}` : ''}`, [mine]);
+  const { ready, scope, scoped, setScoped } = useScopeSwitch();
+  const [mineSet, setMine] = useState(null); const mine = mineSet === null ? !scoped : mineSet;   // the cohort view shows every nurse's tasks, like the queue
+  const [f, setF] = useState('all'); const [view, setView] = useState('calendar'); const [calM, setCalM] = useState(0); const [calDay, setCalDay] = useState(null); const [mem, setMem] = useState(''); const [busy, setBusy] = useState(false); const [more, setMore] = useState({});
+  const qs = [mine ? `nurse_id=${user.user_id}` : '', scoped ? 'scope=active' : ''].filter(Boolean).join('&');
+  const t = useApi(ready ? `/portal/tasks${qs ? '?' + qs : ''}` : null, [mine, scoped]);
   const T = t.data || [];
   const L = useMemo(() => T.filter(F[f] || F.all).filter(x => !mem || x.member_id === mem), [t.data, f, mem]); // eslint-disable-line react-hooks/exhaustive-deps
   const members = useMemo(() => { const m = new Map(); T.forEach(x => m.set(x.member_id, x.display_name)); return [...m.entries()].sort((a, b) => a[1].localeCompare(b[1])); }, [t.data]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (t.loading && !t.data) return <div className="pg"><Loading what="Loading tasks" /></div>;
+  if ((t.loading || !ready) && !t.data) return <div className="pg"><Loading what="Loading tasks" /></div>;
   if (t.error) return <div className="pg"><ErrorBox error={t.error} retry={t.reload} /></div>;
   const open = L.filter(x => x.status === 'open'), back = open.filter(x => x.due_date < today), tod = open.filter(x => x.due_date === today), up = open.filter(x => x.due_date > today), done = L.filter(x => x.status !== 'open');
   const shiftAll = T.filter(x => x.due_date <= today), shiftDone = shiftAll.filter(x => x.status !== 'open').length;
@@ -36,7 +40,8 @@ export default function Tasks() {
     <div className="ktiles"><Tile k n={back.length} label="Backlog · overdue" cls="crit" /><Tile k n={tod.length} label="Today" cls="info" /><Tile k n={up.length} label="Upcoming" cls="neu" /><Tile k n={done.length} label="Done" cls="ok" /></div>
     <div className="bar2"><div className="segc" role="group" aria-label="View">{[['calendar', 'Calendar'], ['list', 'List']].map(([k, l]) => <button key={k} aria-pressed={view === k} onClick={() => setView(k)}>{l}</button>)}</div>
       <div className="chips">{FILTERS.map(([k, l]) => <button key={k} className="chip lg" aria-pressed={f === k} onClick={() => setF(k)}>{l} <span className="c">{cnt(k)}</span></button>)}
-        <button className="chip lg" aria-pressed={mine} onClick={() => setMine(!mine)} title="Show only tasks assigned to me, or the whole care team">Only my tasks · {first(user.name)}</button></div>
+        <button className="chip lg" aria-pressed={mine} onClick={() => setMine(!mine)} title="Show only tasks assigned to me, or the whole care team">Only my tasks · {first(user.name)}</button>
+        {scope ? <button className="chip lg" aria-pressed={scoped} onClick={() => { setScoped(!scoped); setMine(null); }} title={`${scope.label} · ${scope.members} members handed off from the Care studio`}>Cohort members · {scope.id}</button> : null}</div>
       <select className="inp" value={mem} onChange={e => setMem(e.target.value)} aria-label="Member" style={{ marginLeft: 'auto', width: 220 }}><option value="">All members</option>{members.map(([id, n]) => <option key={id} value={id}>{n} · {id}</option>)}</select></div></>;
   let body;
   if (view === 'list') {
