@@ -1,0 +1,7 @@
+group_no,field_group,examples,extract_columns_today
+1,Who they are,"Age, gender, nationality, plan, region","AGE, GENDER, NATIONALITY, plan_name (region: not in extract)"
+2,Health,"Any ICD-10 family, new diagnosis, number of chronic conditions","cohort_t2d_l12m, cohort_htn_l12m, flag_* condition flags, first_e11_date, first_htn_date"
+3,Tests & results,"Latest result or overdue test: HbA1c, eGFR, UACR, LDL, BP, BMI, TSH","Last_*_Value, last_*_date (LDL, TSH: not in extract)"
+4,Visits & admissions,"ED visits, admissions, readmission, no outpatient visit, specialist seen","ed_visits_l12m, ip_admissions_l12m, last_visit_date, specialist_claims_6m"
+5,Medicines,"ATC class, adherence (PDC), number of medicine classes","active_drug_classes, pdc_*, active_drug_class_count"
+6,Other,"Screenings, network share and cost, engagement, consent and exclusions","last_retinal_screen_date, last_foot_exam, phg_share_l12m_encounters, l12m_payable_DiaborHTNrelated, Exclusion"

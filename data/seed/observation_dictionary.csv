@@ -1,0 +1,291 @@
+Type,Code,Description,Value,ValueType
+Flags,ADPHC,"If Vaccines supplied by ADPHC, this tag is mandatory to be reported",,
+Flags,LTMV,Long Term Mechanical Ventilation Flag,,
+Flags,LTMV,Long Term Mechanical Ventilation Flag,,
+Text,Triage category,Triage category,"1
+2
+3
+4
+5","Resuscitation/Critical
+Emergency
+Urgent
+Less Urgent
+Non-Urgent"
+Flags,MedicalTourismPlanned,Reported if appointment with the Patient was made in advance of the Medical Tourism encounter,[Empty],[Empty]
+Flags,MedicalTourismUnplanned,Reported if no appointment was made in advance of the Medical Tourism encounter,[Empty],[Empty]
+File,Invoice,Purchase Invoice of the consumable in a PDF file encoded with Base 64 binary,[Binary file],Base64PDF
+Text,Activity description,"Text description of Items or manufacturer name or product name
+
+Example: Reporting of Vendor name,Product description,Gross price
+Activity.Type=4
+Activity.Code=A4649
+Activity.Observation.Type=Text
+Activity.Observation.Code=Activity description
+Activity.Observation.Value=ALMENA HEALTHCARE TRADING,Flexiprobe,2800[Vendor name,Product description,Gross price]
+Activity.Observation.ValueType=Text
+
+",Max 150 characters,Text
+Text,Dose,The quantity of drug units prescribed at each dosing interval; ,>0,DoseValueType
+Text,Frequency,Number of drug dosing interval per time unit,>0,FrequencyValueType
+Text,Duration,Duration of the treatment for one dispensing encounter,>0,"Days,Weeks,Months"
+,,,,
+Text,Date of Prescription ,Prescription Date,dd/mm/yyyy,Date
+Text,Refill Number,Refill Number,>=0,Number
+Text,Total Prescribed Refills,Total Prescribed Refills,0-3,Number
+,,,,
+Text,CPT modifier,CPT modifier,50-PC,Modifiers
+,,,,
+LOINC,14749-6,Glucose,0.1-83.2,mmol/l
+LOINC,4548-4,Hemoglobin A1c (glycated HgB)/Hemoglobin.total in Blood,4.0-20.1,%
+LOINC,14647-2,Cholesterol Total;Cholesterols; Lipid,0.1-21,mmol/l
+LOINC,14646-4,Cholesterol.in HDL [Molecules/volume] in Serum or Plasma,0.08-6.24,mmol/l
+LOINC,14647-2,Cholesterol Total;Cholesterols; Lipid,0.1-21,mmol/l
+LOINC,14646-4,Cholesterol.in HDL [Molecules/volume] in Serum or Plasma,0.08-6.24,mmol/l
+,,,,
+Text,Activity description,"Text description of Supplies, Products or Services or Drugs
+
+Example: Reporting of Laser hair removal for face
+Activity.Type=3
+Activity.Code=17999
+Activity.Observation.Type=Text
+Activity.Observation.Code=Activity description
+Activity.Observation.Value=Laser hair removal for Face
+Activity.Observation.ValueType=Text
+
+",Max 150 characters,Text
+Text,Gross amount,"The number representing the negotiated Gross amount in AED for ""1 unit"" of service, supply or product (including patient share)",Float-type number representing  AED amount,AED
+,,,,
+,,,,
+LOINC,14749-6,Glucose,0.1-83.2,mmol/l
+LOINC,4548-4,Hemoglobin A1c (glycated HgB)/Hemoglobin.total in Blood,4.0-20.1,%
+LOINC,14647-2,Cholesterol Total;Cholesterols; Lipid,0.1-21,mmol/l
+LOINC,14646-4,Cholesterol.in HDL [Molecules/volume] in Serum or Plasma,0.08 -6.24,mmol/l
+LOINC,22748-8,Cholesterol.in LDL [Molecules/volume] in Serum or Plasma,   1-10,mmol/l
+LOINC,47210-0,Triglyceride^post CFst,  0.1 -50.0,mmol/l
+LOINC,14682-9,Creatinine,5-1000,µmol/l or micromol/L
+LOINC,69405-9,GFR,1-150                         ,mL/min
+LOINC,3137-7,Body height,"100-270, 888, 999",Cm
+LOINC,3141-9,Body weight,"20-500, 888, 999",Kg
+LOINC,39156-5,Body mass index,"11-85, 888, 999",kg/m2
+LOINC,8480-6,Intravascular systolic,"10-400, 888, 999",mmHg
+LOINC,8462-4,Intravascular diastolic,"30-200, 888, 999",mmHg
+LOINC,8280-0,Waist Circumference,"30-200, 888, 999",Cm
+LOINC,9847-5,Circumference site ,Hip,Anat
+LOINC,9844-2,hip Circumference,"45-300, 888, 999",Cm
+Text,Emirate of residence,Place of residence - Emirate,3490-3496,Observation
+Text,Region of residence,Place of residence - Abu Dhabi region,3500-3502,Observation
+Text,Education,What is your level of education,3301-3308,Observation
+Text,Employment,What is your current employment status,3311-3318,Observation
+Text,Hypertension history,Has a health professional ever told you that you have hypertension,3320-3323,Observation
+Text,Hypertension medication,Are you currently taking medication for hypertension,3320-3323,Observation
+Text,Diabetes history,Has a health professional ever told you that you have diabetes,3320-3323,Observation
+Text,Diabetes medication,Are you currently taking medication for diabetes,3320-3323,Observation
+Text,Dyslipidaemia history,Has a health professional ever told you that you have high cholesterol,3320-3323,Observation
+Text,Dyslipidaemia medication,Are you currently taking medication for dyslipidaemia,3320-3323,Observation
+Text,Obesity history,Has a health professional ever told you that you have obesity,3320-3323,Observation
+Text,On medication for obesity,Are you currently taking medication for obesity,3320-3323,Observation
+Text,Cancer history,Has a health professional ever told you that you have cancer,3320-3323,Observation
+Text,On medication for cancer,Are you currently taking medication for cancer,3320-3323,Observation
+Text,Heart disease history,Has a health professional ever told you that you have heart disease,3320-3323,Observation
+Text,Heart disease medication,Are you currently taking medication for heart disease,3320-3323,Observation
+Text,Stroke history,Has a health professional ever told you that you have stroke,3320-3323,Observation
+Text,On medication for stroke,Are you currently taking medication for stroke,3320-3323,Observation
+Text,Depression history,Has a health professional ever told you that you have depression,3320-3323,Observation
+Text,Depression medication,Are you currently taking medication for depression,3320-3323,Observation
+Text,Osteoporosis history,Has a health professional ever told you that you have osteoporosis,3320-3323,Observation
+Text,Osteoporosis medication,Are you currently taking medication for osteoporosis,3320-3323,Observation
+,,,,
+Text,Family heart disease hist,Has anyone in your immediate family ever had heart disease ,3320-3323,Observation
+Text,Family stroke history,Has anyone in your immediate family ever had stroke,3320-3323,Observation
+Text,Family diabetes history,Has anyone in your immediate family ever had diabetes mellitus,3320-3323,Observation
+Text,Family cancer history,Has anyone in your immediate family ever had cancer,3320-3323,Observation
+Text,Family hypertension hist,Has anyone in your immediate family ever had hypertension,3320-3323,Observation
+Text,Family depression history,Has anyone in your immediate family ever had depression,3320-3323,Observation
+Text,Family osteoporosis hist,Has anyone in your immediate family ever had osteoporosis,3320-3323,Observation
+Text,Parents related,Are your parents related to each other,3320-3323,Observation
+Text,Current smoker,Do you currently smoke any tobacco product,3450-3454,Observation
+Text,Past smoker,"In the past, have you smoked tobacco",3450-3454,Observation
+Text,# Cigarettes per day,"On average, how many of the cigarattes  do/ did you Smoke each day? ",0-200,Number
+Text,Cigarettes age start,How old were you when you started using cigarettes?,5-120,Age
+Text,# eCigarettes per day,"On average, how many of the eCigarettes   do/ did you Smoke each day? ",0-200,Number
+Text,eCigarettes age start,How old were you when you started using ecigarettes?,5-120,Age
+,,,,
+Text,# Midwakh dokha per day,"On average, how many of the Midwakh dokha do/ did you Smoke each day? ",0-200,Number
+Text,Midwakh dokha age start,How old were you when you started using midwakh/dokha?,5-120,Age
+Text,# Shisha per week,"On average, how many of the Shisha do/ did you Smoke per  week ? ",0-200,Number
+Text,Shisha age start,How old were you when you started using shisha?,5-120,Age
+Text,# Chewable tobacco per wk,"On average, how many of the  do/ did you Chewable tobacco per wk Smoke per  week ? ",0-200,Number
+Text,Chew. tobacco age start,How old were you when you started using chewable tobacco?,5-120,Age
+Text,Passive smoking home,In the past 30 days anuone smoke around you at home,3450-3454,Observation
+Text,Passive smoking work,In the past 30 days anuone smoke around you at work,3450-3454,Observation
+Text,Fruites intake,In a typical week how many days do you eat fruites,"0-7, 88, 99",Number
+Text,Fruites sevings,How many servings of fruit do you eat in one day,"0-25, 88, 99",Number
+Text,Vegetables intake,In a typical week how many days do you eat vegetables,"0-7, 88, 99",Number
+Text,Vegetables sevings,How many servings of vegetables do you eat in one day,"0-25, 88, 99",Number
+,,,,
+Text,Meals outside home,How many meals per month not prepared at home,3460-3466,Observation
+,,,,
+Text,Vigorous exercise days,"During the last 7 days, on how many days did you do vigorous physical activities","0-7, 88, 99",Number
+Text,Vigorous exercise hours,How many hours did you usually spend doing vigorous physical activities on one of those days,"0-16, 88, 99",Number
+Text,Vigorous exercise minutes,How many minutes did you usually spend doing vigorous physical activities on one of those days,"0-960, 88, 99",Number
+Text,Moderate exercise days,"During the last 7 days, on how many days did you do moderate  physical activities","0-7, 88, 99",Number
+Text,Moderate exercise hours,How many hours  in total would you spend over the last 7 days doing moderate  physical activities?  ,"0-16, 88, 99",Number
+Text,Moderate exercise minutes,How many mintues  in total would you spend over the last 7 days doing moderate  physical activities?”  ,"0-960, 88, 99",Number
+Text,Days 10+ min walikng,"During the last 7 days, on how many days did you walk for at least 10 minutes at a time? ","0-7, 88, 99",Number
+Text,Walking total hours,How many hours  in total would you spend walking over the last 7 days ? ,"0-16, 88, 99",Number
+Text,Walking total minutes,How many mintues  in total would you spend walking  over the last 7 days ? ,"0-960, 88, 99",Number
+Text,Sitting hours,"During the last 7 days, how many hours  did you usually spend sitting on a week day? ","0-16, 88, 99",Number
+Text,Sitting minutes,"During the last 7 days, how many mintues   did you usually spend sitting on a week day? ","0-960, 88, 99",Number
+,,,,
+HPV result,Result,Observation,,
+,,,,
+,,,,
+Colorectal-FIT,Result,Observation,,
+Text,PAP result,Result,3123-3133,Observation
+,,,,
+,,,,
+,,,,
+Text,HPV result,Result,3122-3123,Observation
+Text,HPV result,Result,3122-3123,Observation
+,,,,
+77067,Result,CPT,,
+Text,Colorectal-FIT,Result,3121-3123,Observation
+Text,Colonoscopy,Result,3134-3142,Observation
+,,,,
+,,,,
+,,,,
+Low dose CT ,Result,Observation,,
+,,,,
+CPT,77057,Result,3340F-3350F,CPT
+CPT,77067,Result,3340F-3350F,CPT
+,,,,
+,,,,
+38266-3,DXA / Tscore ,T score ,,
+62698-6,Snellen chart represented as 'Numerator/Denominator',m ,,
+Pure tone audiometery,Result,Observation,,
+Text,Low dose CT ,Result,3480-3484,Observation
+,,,,
+,,,,
+,,,,
+44262-4,Total PHQ-9 score,Total PHQ-9 score,,
+# Teeth decayed,Number of Decayed teeth,Number,,
+LOINC,38266-3,DXA / Tscore ,-4-+4,T score 
+LOINC,62698-6,Snellen chart represented as 'Numerator/Denominator',"Numerator: 0-6
+Denominator: 6-120",m 
+Text,Pure tone audiometery,Result,3470-3471,Observation
+,,,,
+# Teeth bleeding on prob,Number of teeth with gingival bleeding on probing,,,
+,,,,
+,,,,
+LOINC,44262-4,Total PHQ-9 score,0-27,Total PHQ-9 score
+Text,# Teeth decayed,Number of Decayed teeth,0-32,Number
+Text,# Teeth missing,Number of Missing teeth,0-32,Number
+Text,# Teeth filled,Number of Filled teeth,0-32,Number
+Text,# Teeth with erosion,Number of teeth affected by erosion,0-32,Number
+Text,# Teeth total,Total number of teeth ,0-32,Number
+Text,# Teeth bleeding on prob,Number of teeth with gingival bleeding on probing,0-32,Number
+Text,# Teeth with 4-5mm pocket,Total number of teeth with Pocket 4 - 5 mm (gingival margin within the black band on the probe),0-32,Number
+Text,# Teeth with 6mm+ Pocket ,Total number of teeth with Pocket 6 mm or more (black band on the probe not visible),0-32,Number
+Text,Mucosal abnormalities,"Any unexplained changes in the mucosa erythroplakia, leukoplakia (Y/N)",3320-3321,Observation
+,,,,
+Text,Drug patient share,Amount of the patient share collected from the patient,A number with two decimal digits representing the AED amount,AED
+,,,,
+LOINC,4548-4,Hemoglobin A1c (glycated HgB)/Hemoglobin.total in Blood,4.0-20.1,%
+LOINC,14996-3,Glucose^pre 75 g glucose PO,  3-15,mmol/l
+LOINC,14995-5,Glucose^2H post 75 g glucose PO,  5-20,mmol/l
+LOINC,47210-0,Triglyceride^post CFst,  0.5 -10.0,mmol/l
+LOINC,22748-8,Cholesterol.in LDL [Molecules/volume] in Serum or Plasma,   1-10,mmol/l
+LOINC,14646-4,Cholesterol.in HDL [Molecules/volume] in Serum or Plasma,0.08 -6.24,mmol/l
+LOINC,1754-1,Albumin [Mass/volume] in Urine or body fluid,0-400,Mg/l
+LOINC,1746-7,,0-400,Mg/l
+LOINC,14957-5,Microalbumin [Mass/volume] in Urine,50-250,Mg/l
+,,,,
+LOINC,3137-7,Body Height,20-270,Cm
+LOINC,3141-9,Body Weight,0.5-300,Kg
+LOINC,8480-6,Intravascular systolic,"60-240, na",mmHg
+LOINC,8462-4,Intravascular diastolic,"35-130, na",mmHg
+LOINC,11367-0,History of tobacco use,1500-1502,Observation
+,,,,
+Text,ClinicalExamResult,Result,3171-3172,Observation
+,,,,
+Text,Cervical-PAPTest,Result,3122-3133,Observation
+,,,,
+Text,Colorectal-FIT,Result,3121-3123,Observation
+,,,,
+Text,ClinicalExamResult,Result,3171-3172,Observation
+,,,,
+Text,Colonoscopy,Result,3134-3142,Observation
+,,,,
+Text,GeneticCounseling,Result,3176-3177,Observation
+,,,,
+Text,GeneticTesting,Result,3173-3175,Observation
+,,,,
+CPT,"77059 or
+77057 valid till 30th june 2021
+77067 valid from 1st july 2021",Result,3340F-3350F,CPT
+,,,,
+Text,GeneticTesting,Result,3173-3175,Observation
+,,,,
+Text,GeneticCounseling,Result,3176-3177,Observation
+,,,,
+CPT,77067,Result,3340F-3350F,CPT
+,,,,
+Text,ClinicalExamResult,Result,3171-3172,Observation
+,,,,
+File,Invoice,Purchase Invoice of the consumable in a PDF file encoded with Base 64 binary,[Binary file],Base64PDF
+,,,,
+LOINC,8339-4,Body weight^at birth,Non-negative number with 3 decimal digits,kg
+,,,,
+,,,,
+Text,Mobile Number,Patients' UAE mobile number,Max 10 characters,Mobile number
+,,,,
+,,,,
+,,,,
+Text,Date of Initial Encounter,Date of Initial Encounter,,Date
+Text,Date of Initial Diagnosis,Date of Initial Diagnosis,,Date
+Text,Date of Initial Treatment,Date of Initial Treatment,,Date
+Text,Primary Site,Primary Site,C00.0-C97,ICD-O3
+Text,Histology,Histology,8000-9989,ICD-O3
+Text,Sequence Number,Sequence Number,1600-1606,Observation
+Text,Behaviour,Behaviour,1700-1705,Observation
+Text,Grade,Grade,1800-1808,Observation
+Text,Laterality,Laterality,1900-1906,Observation
+Text,Basis of Diagnosis,Basis of Diagnosis,2000-2007,Observation
+Text,Clinical T,Clinical T,2100-2126,Observation
+Text,Clinical N,Clinical N,2200-2216,Observation
+Text,Clinical M,Clinical M,2300-2307,Observation
+Text,Clinical Stage Group,Clinical Stage Group,2400-2422,Observation
+Text,Pathologic T,Pathologic T,2500-2526,Observation
+Text,Pathologic N,Pathologic N,2600-2616,Observation
+Text,Pathologic M,Pathologic M,2700-2706,Observation
+Text,Pathologic Stage Group,Pathologic Stage Group,2800-2822,Observation
+Text,Multiplicity Counter,Multiplicity Counter,2900-2906,Observation
+Text,Marital Status,Marital Status,3000-3004,Observation
+Text,Occupation,Occupation,B2-B408,ISCO 8
+Text,Address at diagnosis,City of Residence,A2-A150,Location
+,,,,
+,,,,
+Flags,Exclude from DRG grouping,Indicates activities that are not claimed to insurance in a DRG claim (see Business Rule 1.2 and DSP decision 209),[Empty],[Empty]
+,,,,
+Text,Date of Initial Encounter,Date of Initial Encounter,,Date
+Text,Date of Initial Diagnosis,Date of Initial Diagnosis,,Date
+Text,Date of Initial Treatment,Date of Initial Treatment,,Date
+Text,Primary Site,Primary Site,C0-C81,ICD-O3
+Text,Histology,Histology,8000-9989,ICD-O3
+Text,Sequence Number,Sequence Number,200-288,Observation
+Text,Behaviour,Behaviour,300-309,Observation
+Text,Grade,Grade,310-319,Observation
+Text,Laterality,Laterality,320-329,Observation
+Text,Diagnostic Confirmation,Diagnostic Confirmation,330-339,Observation
+Text,Clinical T,Clinical T,400-499,Observation
+Text,Clinical N,Clinical N,500-599,Observation
+Text,Clinical M,Clinical M,600-699,Observation
+Text,Clinical Stage Group,Clinical Stage Group,700-799,Observation
+Text,Pathologic T,Pathologic T,800-899,Observation
+Text,Pathologic N,Pathologic N,900-999,Observation
+Text,Pathologic M,Pathologic M,1000-1099,Observation
+Text,Pathologic Stage Group,Pathologic Stage Group,1100-1199,Observation
+,,,,
+CPT,77057,Screening Mammography,3340F-3350F,CPT
+CPT,77057,Screening Mammography,3340F-3350F,CPT
+CPT,77067,Screening Mammography,3340F-3350F,CPT

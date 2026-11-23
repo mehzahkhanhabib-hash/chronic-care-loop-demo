@@ -1,0 +1,101 @@
+rule_id,rule_type,target,variant,group_no,column_name,op,value,note
+trigger:Trig1:extract,trigger,Trig1,extract,1,Trig1_HbA1c_above_target,=,1,Flag computed in the extract (see glossary)
+trigger:Trig2:extract,trigger,Trig2,extract,1,Trig2_HTN_tx_review,=,1,Flag computed in the extract (see glossary)
+trigger:Trig3:extract,trigger,Trig3,extract,1,Trig3_hypoglycemia_tx,=,1,Flag computed in the extract (see glossary)
+trigger:Trig4:extract,trigger,Trig4,extract,1,Trig4_post_discharge_care,=,1,Flag computed in the extract (see glossary)
+trigger:Trig5:extract,trigger,Trig5,extract,1,Trig5_Kidney_check,=,1,Flag computed in the extract (see glossary)
+trigger:Trig6:extract,trigger,Trig6,extract,1,Trig6_HbA1c_due,=,1,Flag computed in the extract (see glossary)
+trigger:Trig7:extract,trigger,Trig7,extract,1,Trig7_Renal_Potassium_due,=,1,Flag computed in the extract (see glossary)
+trigger:Trig8:extract,trigger,Trig8,extract,1,Trig8_nutrition_due,=,1,Flag computed in the extract (see glossary)
+trigger:Trig9:extract,trigger,Trig9,extract,1,Trig9_medication_adherence,=,1,Flag computed in the extract (see glossary)
+trigger:Trig10:extract,trigger,Trig10,extract,1,Trig10_new_diagnosis,=,1,Flag computed in the extract (see glossary)
+trigger:Trig11:extract,trigger,Trig11,extract,1,Trig11_annual_labs_due,=,1,Flag computed in the extract (see glossary)
+trigger:Trig12:extract,trigger,Trig12,extract,1,Trig12_eyeexam_due,=,1,Flag computed in the extract (see glossary)
+trigger:Trig13:extract,trigger,Trig13,extract,1,Trig13_highriskfoot_monitor,=,1,Flag computed in the extract (see glossary)
+trigger:Trig1:rulebook,trigger,Trig1,rulebook,1,cohort_t2d_l12m,=,1,Individual goal defaults to 8%
+trigger:Trig1:rulebook,trigger,Trig1,rulebook,1,Last_HbA1c_Value,>=,8,Individual goal defaults to 8%
+trigger:BPU:rulebook,trigger,BPU,rulebook,1,Last_SystolicPressure_Value,>=,180,
+trigger:BPU:rulebook,trigger,BPU,rulebook,2,Last_DiastolicPressure_Value,>=,110,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,1,cohort_htn_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,1,Last_SystolicPressure_Value,>=,140,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,2,cohort_htn_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,2,Last_DiastolicPressure_Value,>=,90,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,3,cohort_htn_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,3,cohort_t2d_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,3,Last_SystolicPressure_Value,>=,130,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,4,cohort_htn_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,4,cohort_t2d_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,4,Last_DiastolicPressure_Value,>=,80,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,5,cohort_htn_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,5,flag_ckd,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,5,Last_SystolicPressure_Value,>=,130,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,6,cohort_htn_l12m,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,6,flag_ckd,=,1,
+trigger:Trig2:rulebook,trigger,Trig2,rulebook,6,Last_DiastolicPressure_Value,>=,80,
+trigger:Trig3:rulebook,trigger,Trig3,rulebook,1,cohort_t2d_l12m,=,1,
+trigger:Trig3:rulebook,trigger,Trig3,rulebook,1,flag_dm_hypoglycaemia_l12m,=,1,
+trigger:Trig4:rulebook,trigger,Trig4,rulebook,1,last_ip_discharge_date,<=,14,ED visits in 90 days approximated by 2+ in 12 months with the latest in 90 days
+trigger:Trig4:rulebook,trigger,Trig4,rulebook,2,ed_visits_l12m,>=,2,ED visits in 90 days approximated by 2+ in 12 months with the latest in 90 days
+trigger:Trig4:rulebook,trigger,Trig4,rulebook,2,last_ed_visit_date,<=,90,ED visits in 90 days approximated by 2+ in 12 months with the latest in 90 days
+trigger:Trig5:rulebook,trigger,Trig5,rulebook,1,Last_eGFR_Value,<,60,
+trigger:Trig5:rulebook,trigger,Trig5,rulebook,2,cohort_t2d_l12m,=,1,
+trigger:Trig5:rulebook,trigger,Trig5,rulebook,2,last_egfr_test_date,missing_or_gt,365,
+trigger:Trig5:rulebook,trigger,Trig5,rulebook,3,cohort_t2d_l12m,=,1,
+trigger:Trig5:rulebook,trigger,Trig5,rulebook,3,last_urine_albumin_date,missing_or_gt,365,
+trigger:Trig9:rulebook,trigger,Trig9,rulebook,1,pdc_any_t2d_noninsulin,<,0.8,
+trigger:Trig9:rulebook,trigger,Trig9,rulebook,2,pdc_any_htn,<,0.8,
+trigger:Trig9:rulebook,trigger,Trig9,rulebook,3,days_since_t2d_supply_ran_out,>,30,
+trigger:Trig9:rulebook,trigger,Trig9,rulebook,4,days_since_htn_supply_ran_out,>,30,
+trigger:Trig6:rulebook,trigger,Trig6,rulebook,1,cohort_t2d_l12m,=,1,
+trigger:Trig6:rulebook,trigger,Trig6,rulebook,1,last_hba1c_date2,missing_or_gt,180,
+trigger:Trig6:rulebook,trigger,Trig6,rulebook,2,cohort_t2d_l12m,=,1,
+trigger:Trig6:rulebook,trigger,Trig6,rulebook,2,Last_HbA1c_Value,>=,8,
+trigger:Trig6:rulebook,trigger,Trig6,rulebook,2,last_hba1c_date2,missing_or_gt,90,
+trigger:Trig12:rulebook,trigger,Trig12,rulebook,1,cohort_t2d_l12m,=,1,
+trigger:Trig12:rulebook,trigger,Trig12,rulebook,1,last_retinal_screen_date,missing_or_gt,730,
+trigger:Trig12:rulebook,trigger,Trig12,rulebook,1,last_ophthalmology_visit,missing_or_gt,730,
+trigger:Trig13:rulebook,trigger,Trig13,rulebook,1,cohort_t2d_l12m,=,1,
+trigger:Trig13:rulebook,trigger,Trig13,rulebook,1,last_foot_exam,missing_or_gt,365,
+trigger:Trig13:rulebook,trigger,Trig13,rulebook,2,cohort_t2d_l12m,=,1,
+trigger:Trig13:rulebook,trigger,Trig13,rulebook,2,flag_dm_foot_ulcer_l12m,=,1,
+trigger:Trig13:rulebook,trigger,Trig13,rulebook,3,cohort_t2d_l12m,=,1,
+trigger:Trig13:rulebook,trigger,Trig13,rulebook,3,flag_amputation,=,1,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,1,cohort_htn_l12m,=,1,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,1,flag_active_ACEinhibitor,=,1,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,1,last_potassium_date,missing_or_gt,365,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,2,cohort_htn_l12m,=,1,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,2,flag_active_ARBinhibitor,=,1,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,2,last_potassium_date,missing_or_gt,365,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,3,cohort_htn_l12m,=,1,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,3,pdc_mra,not_null,,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,3,last_potassium_date,missing_or_gt,365,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,4,cohort_htn_l12m,=,1,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,4,pdc_thiazide,not_null,,
+trigger:Trig7:rulebook,trigger,Trig7,rulebook,4,last_potassium_date,missing_or_gt,365,
+trigger:Trig11:rulebook,trigger,Trig11,rulebook,1,last_lipid_panel_date,missing_or_gt,365,
+trigger:Trig11:rulebook,trigger,Trig11,rulebook,2,last_renal_panel_date,missing_or_gt,365,
+trigger:Trig10:rulebook,trigger,Trig10,rulebook,1,first_e11_date,<=,90,
+trigger:Trig10:rulebook,trigger,Trig10,rulebook,2,first_htn_date,<=,90,
+trigger:Trig8:rulebook,trigger,Trig8,rulebook,1,cohort_t2d_l12m,=,1,
+trigger:Trig8:rulebook,trigger,Trig8,rulebook,1,last_dietitian_visit,missing_or_gt,365,
+trigger:Trig8:rulebook,trigger,Trig8,rulebook,1,last_diabeducator_visit,missing_or_gt,365,
+cannot_tell:Trig2:any,cannot_tell,Trig2,any,1,cohort_htn_l12m,=,1,No usable BP reading (missing or a placeholder)
+cannot_tell:Trig2:any,cannot_tell,Trig2,any,1,Last_SystolicPressure_Value,is_null,,No usable BP reading (missing or a placeholder)
+cannot_tell:Trig6:any,cannot_tell,Trig6,any,1,cohort_t2d_l12m,=,1,No usable HbA1c result
+cannot_tell:Trig6:any,cannot_tell,Trig6,any,1,Last_HbA1c_Value,is_null,,No usable HbA1c result
+cannot_tell:Trig5:any,cannot_tell,Trig5,any,1,cohort_t2d_l12m,=,1,No eGFR or UACR result
+cannot_tell:Trig5:any,cannot_tell,Trig5,any,1,Last_eGFR_Value,is_null,,No eGFR or UACR result
+cannot_tell:Trig5:any,cannot_tell,Trig5,any,1,Last_UACR_Value,is_null,,No eGFR or UACR result
+alert:RED:any,alert,RED,any,1,Priority_clinical_review,=,1,"Red-flag symptoms are captured on the call, not from data"
+alert:RED:any,alert,RED,any,2,flag_dka_l12m,=,1,"Red-flag symptoms are captured on the call, not from data"
+alert:RED:any,alert,RED,any,3,flag_dm_hypoglycaemia_l12m,=,1,"Red-flag symptoms are captured on the call, not from data"
+alert:RED:any,alert,RED,any,4,Last_SystolicPressure_Value,>=,180,"Red-flag symptoms are captured on the call, not from data"
+alert:RED:any,alert,RED,any,5,Last_DiastolicPressure_Value,>=,110,"Red-flag symptoms are captured on the call, not from data"
+alert:RED:any,alert,RED,any,6,Last_eGFR_Value,<,15,"Red-flag symptoms are captured on the call, not from data"
+alert:AMBER:any,alert,AMBER,any,1,Trig4_post_discharge_care,=,1,"""eGFR falling"" needs two results; the extract has only the latest"
+alert:AMBER:any,alert,AMBER,any,2,Last_HbA1c_Value,>=,9,"""eGFR falling"" needs two results; the extract has only the latest"
+alert:AMBER:any,alert,AMBER,any,3,Last_SystolicPressure_Value,>=,160,"""eGFR falling"" needs two results; the extract has only the latest"
+alert:AMBER:any,alert,AMBER,any,4,Last_DiastolicPressure_Value,>=,100,"""eGFR falling"" needs two results; the extract has only the latest"
+alert:AMBER:any,alert,AMBER,any,5,pdc_any_t2d_noninsulin,<,0.5,"""eGFR falling"" needs two results; the extract has only the latest"
+alert:AMBER:any,alert,AMBER,any,6,pdc_any_htn,<,0.5,"""eGFR falling"" needs two results; the extract has only the latest"
+alert:YELLOW:any,alert,YELLOW,any,1,_fired_triggers,>=,1,Off target or an overdue test: any trigger fired

@@ -1,0 +1,13 @@
+code,name,rule,enforced_in
+G0,Plausibility,"Impossible or placeholder values (for example 999, BP 1/1) are emptied before any rule reads them",backend/ingest.py (PLAUSIBLE)
+G1,Only fired triggers,Only fired triggers become needs; cannot-tell becomes a question,backend/engine.py run()
+G1b,Red flags,A RED alert stops the script and escalates the same day,rule_alert; portal call screen
+G1c,Gates,Exclusion = 1 in the extract and declined consent remove a member from every campaign,backend/engine.py campaign_members()
+G2,Consent,Nothing below the consent card is rendered until consent is logged,portal LOCKED(); member.consent_status
+G3,Contact cap,No new outreach call within 14 days of a reached call; max 3 attempts,"backend/engine.py run(), process_outcomes()"
+G4,Declines held,A declined need is not re-offered for 90 days,rule_writeback.hold_days
+G5,A deadline wins,A due date inside the contact cap still gets a call,backend/engine.py (due date by class)
+G7,Prerequisites,An action waiting on another is released when it closes,rule_action.prerequisite
+G8,Ask once,A cannot-tell question is asked once,rule_condition rule_type = cannot_tell
+G9,Dispositions survive a re-run,Done and declined needs are never reopened by the same extract,backend/engine.py run()
+G10,Staff work,"Work is assigned by language, then skill, within daily capacity",care_team_user.daily_capacity

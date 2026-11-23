@@ -1,0 +1,342 @@
+column	category	description
+mask_id	Patient demographics	Masked member identifier (m1, m2, ...); one row per member. Replaces member_id and life_id in this file.
+rank_PURECS_per_payable	Risk score	Rank of the member within the PURECS allocation by diabetes / hypertension related payable in the last 12 months (l12m_payable_DiaborHTNrelated), 1 = highest
+GENDER	Patient demographics	Gender, taken from the member's most recent claim.
+AGE	Patient demographics	Age in years, from the latest year in the age table.
+NATIONALITY	Patient demographics	Member's nationality, provided by DABI team
+plan_name	Patient demographics	Insurance plan, taken from the member's most recent claim.
+policy_group	Patient demographics	Employer or policy group behind the member's policy (Final_Policy_Group), looked up by member_id from the premium and policy data shared by the DABI team; '-' if the member is not in that data.
+policy_type	Patient demographics	Type of policy, for example Group vs. Individual (Final_Policy_Type), from the premium and policy data shared by the DABI team; '-' if not found.
+cohort_t2d_l12m	Cohort and identification	1 if the member had a claim billed for type 2 diabetes (E11) as a chronic condition in the last 12 months (Nov 2025 to Oct 2026).
+cohort_htn_l12m	Cohort and identification	1 if the member had a claim billed for hypertension (I10) as a chronic condition in the last 12 months (Nov 2025 to Oct 2026).
+t2d_identified_by	Cohort and identification	How diabetes shows in the historical claims data: DX + RX (diagnosed and filling diabetes medicines), DX only (diagnosed, no diabetes medicine filled through Daman), RX only (filling diabetes medicines but never billed with E11), Not T2D.
+htn_identified_by	Cohort and identification	The same for hypertension (I10 diagnosis and blood-pressure medicines): DX + RX, DX only, RX only, Not HTN.
+t2d_category	PHG network category	Network attachment, first that applies: In PHG network for the specified condition in 2026 (a 2026 diabetes claim at SEHA or SSMC); In PHG network for other chronic conditions in 2026; In PHG for chronic conditions prior to 2026; In PHG for non-chronic conditions (only acute care at PHG since 2024); Not in PHG network.
+htn_category	PHG network category	Network attachment, first that applies: In PHG network for the specified condition in 2026 (a 2026 hypertension claim at SEHA or SSMC); In PHG network for other chronic conditions in 2026; In PHG for chronic conditions prior to 2026; In PHG for non-chronic conditions (only acute care at PHG since 2024); Not in PHG network.
+GWP	Premium	Gross written premium for the member, AED, from the premium data shared by the DABI team; '-' if not found.
+Risk Premium	Premium	Risk premium for the member, AED, from the premium data shared by the DABI team; '-' if not found.
+Exclusion	Exclusions	1 = left out of outreach. Any of: cancer claim in the last 24 months (flag_oncology_l24m); outside the PHG network with 75%+ of outpatient encounters at one provider and more than one outpatient encounter (loyal out-of-network member); palliative / hospice / long-term care; dialysis or an AV-access procedure in the last 12 months; transplant; advanced neurological or major congenital condition; psychiatric inpatient stay, active substance use or advanced dementia; ventilator / TPN / 24-hour home nursing; pregnant or post-partum; more than 60% of cost since 2024 in one episode; specialty medicines more than 60% of cost since 2024. Each part is its own column further right.
+P1_Complication	Persona	1 if any of these was billed on any claim since January 2024: kidney disease of any kind, dialysis, stroke, heart failure, heart attack, or a diabetic kidney, eye, foot or circulation complication (flag_any_kidney_disease, flag_dialysis, flag_stroke, flag_heart_failure, flag_mi, flag_dm_kidney, flag_dm_eye, flag_dm_foot, flag_dm_circulatory).
+P2_Recurrent_ED_IP	Persona	1 if emergency visits plus hospital admissions in the last 12 months (ed_visits_l12m + ip_admissions_l12m) total 2 or more.
+P3_slipping	Persona	1 if a diabetes or BP medicine ran out more than 30 days ago, or adherence (PDC) is below 0.8 for non-insulin diabetes medicines or for BP medicines.
+P5_newlydiagnosed	Persona	1 if the first diabetes (E11) or hypertension (I10) claim was in the 180 days before the review date (31 Oct 2026).
+P3_offradar	Persona	1 if no GP and no specialist consultation in the last 6 months, or the member has diabetes and no HbA1c test billed in the 365 days before the review date.
+P4_uncontrolled	Persona	1 if the latest HbA1c is above 7% (values between 3 and 20 only), or the latest systolic blood pressure is above 130 mmHg (values between 60 and 260 only).
+Persona	Persona	One persona per member, the first that applies: 1. Complications (P1), 2. Recurrent ED/IP (P2), 3. Drifting from care (P3_slipping or P3_offradar), 4. Uncontrolled (P4), 5. Newly Diagnosed (P5), 6. Others / Stable.
+Trig1_HbA1c_above_target	Trigger	1 if the member has diabetes and the latest HbA1c is 6.5% or more (values between 3 and 20 only).
+Trig2a_NoACEiARB_KidneyOrCAD	Trigger	1 if the member has diabetes and hypertension, is on neither an ACE inhibitor nor an ARB, and has diabetic kidney disease, CKD, heart attack, ischaemic heart disease or stroke (on any claim since January 2024).
+Trig2b_ACEi_plus_ARB	Trigger	1 if an ACE inhibitor and an ARB are both active and their supplies overlapped by more than 30 days (a combination DoH says not to use).
+Trig2_HTN_tx_review	Trigger	1 if Trig2a or Trig2b is 1.
+Trig3a_hypoglycemia_rev	Trigger	1 if there was a hypoglycaemia claim (E11.64x or E16.0-E16.2) in the last 90 days.
+Trig3b_glucagon_not_dispensed	Trigger	1 if the member has diabetes, had no rescue glucagon in the last 12 months, and is on insulin, or on a sulfonylurea with a hypoglycaemia claim on any claim since January 2024.
+Trig3_hypoglycemia_tx	Trigger	1 if Trig3a or Trig3b is 1.
+Trig4a_NoFollowup_post_discharge	Trigger	1 if discharged from hospital and no clinic visit since (same as flag_no_visit_after_discharge).
+Trig4b_postdischarge_medsgap	Trigger	1 if a diabetes or BP medicine filled before the last admission was not refilled within 30 days of discharge.
+Trig4_post_discharge_care	Trigger	1 if Trig4a or Trig4b is 1.
+Trig5a_Kidney_screen_due	Trigger	1 if the member has diabetes and the urine albumin test or the eGFR result is missing or older than 365 days.
+Trig5b_CKD_monitoring	Trigger	1 if the member has CKD or diabetic kidney disease and the eGFR result or the urine albumin test is missing or older than 90 days.
+Trig5c_Neph_due	Trigger	1 if the latest eGFR is below 30, the member is not on dialysis, and there was no nephrology visit in the last 365 days.
+Trig5_Kidney_check	Trigger	1 if Trig5a, Trig5b or Trig5c is 1.
+Trig6_HbA1c_due	Trigger	1 if the member has diabetes and any of: no HbA1c test in 180 days; latest HbA1c 7% or more and no test in 90 days; a hypo- or hyperglycaemia claim in the last 6 months and no test in 90 days; a new diabetes medicine class started in the last 90 days and no test since.
+Trig7_Renal_Potassium_due	Trigger	1 if the member has hypertension and either the newest ACE inhibitor, ARB, MRA or thiazide class started 14+ days ago with no potassium test since, or one of these is active with no potassium test in 365 days.
+Trig8_nutrition_due	Trigger	1 if the member has diabetes and had no diabetes-educator visit and no dietitian visit in the last 365 days.
+Trig9_medication_adherence	Trigger	1 if a diabetes or BP medicine ran out more than 30 days ago, or PDC is below 0.8 for non-insulin diabetes or BP medicines.
+Trig10_new_diagnosis	Trigger	1 if the first diabetes or hypertension claim was in the last 180 days, or a member without diabetes has fasting glucose 7.0+ mmol/L, 2-hour glucose 11.1+, random glucose 11.1+ or HbA1c 6.5%+.
+Trig11_annual_labs_due	Trigger	1 if on an ACE inhibitor or ARB with no potassium test in 365 days, or the member has diabetes and any of these is missing or older than 365 days: lipid panel, urine albumin, liver function, eGFR result, CBC, vitamin B12 (B12 only if metformin is active).
+Trig12_eyeexam_due	Trigger	1 if the member has diabetes and had no retinal screening and no eye-doctor visit for 365 days when there is diabetic eye disease or HbA1c 7%+, otherwise for 730 days.
+Trig13_highriskfoot_monitor	Trigger	1 if dialysis, diabetic foot, amputation or diabetic neuropathy (any claim since January 2024), and no podiatry visit in the last 180 days.
+# of triggers	Trigger	Number of main triggers that are 1: Trig1 to Trig13 (the a / b / c sub-triggers are not counted separately). 0-13.
+HbA1c_score	Risk score	HbA1c points (H), from the latest HbA1c: 0 if below 7%, 1 if 7.0-7.9%, 2 if 8.0-8.9%, 3 if 9.0-9.9%, 4 if 10% or more; 0 when there is no result.
+Clinical_score	Risk score	Clinical score C, maximum 5: HbA1c_score + 2 if hypertension (cohort_htn_l12m = 1) + 3 if DKA coded in the last 12 months (flag_dka_l12m) + 2 if hypoglycaemia coded in the last 12 months (flag_dm_hypoglycaemia_l12m), capped at 5.
+Comorbid_complication_score	Risk score	Comorbidity and complication score M, maximum 6, from conditions billed on any claim since January 2024: dyslipidaemia 1 (first_dyslipidemia_date present), current smoker 1 (flag_current_smoker_l12m), obesity 1 (flag_obesity), stroke 3 (flag_stroke), heart failure 3 (flag_heart_failure), CAD / heart attack 3 (flag_mi or flag_ischemic_heart_disease), diabetic eye disease 2 (flag_dm_eye), diabetic neuropathy 1 (flag_dm_neuropathy), diabetic foot 4 (flag_dm_foot), amputation 4 (flag_amputation), diabetic circulation / PAD 3 (flag_dm_circulatory); total capped at 6.
+eGFR + UACR points	Risk score	Kidney points from lab results, maximum 5. eGFR (when there is a result): 4 if on dialysis (flag_dialysis), otherwise 0 if 60+, 1 if 45-59, 2 if 30-44, 3 if 15-29, 4 if below 15. Plus UACR (when there is a result): 0 if below 30 mg/g, 1 if 30-299, 2 if 300+.
+Kidney_score	Risk score	Kidney score K, maximum 5: the lab-based points (eGFR + UACR points). When both eGFR and UACR are missing, the documented CKD stage is used instead (ckd_stage_l12m): Not documented / Stage 1-2 = 0, Stage 3a = 1, Stage 3b = 2, Stage 4 = 3, Stage 5 / kidney failure = 4.
+Utilization_score	Risk score	Utilisation score U, maximum 5: diabetes / hypertension related ED visits in the last 12 months (l12m_ED_visits_DiaborHTNrelated) = 1 point each up to 3, plus related admissions (l12m_IP_admissions_DiaborHTNrelated): 1 admission = 3, 2 or more = 4; capped at 5.
+Age_sex_score	Risk score	Age and sex score A, 0-2. Men: under 40 = 0, 40-59 = 1, 60+ = 2. Women: under 45 = 0, 45-69 = 1, 70+ = 2.
+Total_risk_Score	Risk score	Total risk score R = Clinical + Comorbidity + Kidney + Utilisation + Age/sex (0-23).
+Risk_tier	Risk score	Tier from the total risk score: 0-3 = 4. Low, 4-7 = 3. Moderate, 8-12 = 2. High, 13+ = 1. Very High.
+Cohort_allocation	Risk score	Programme the member is allocated to by tier: Very High or High = 'PREVHEATH'; Moderate or Low = 'PURECS'.
+Priority_clinical_review	Risk score	Safety flag, independent of the tier: 1 if DKA (flag_dka_l12m) or a hypoglycaemia was coded in the last 12 months.
+Last_HbA1c_Value	Clinical results	Latest HbA1c (3-month average blood sugar), in %. Readings above 20 are treated as mmol/mol and converted to %.
+Last_HbA1c_Date	Clinical results	Date of the latest HbA1c result.
+Last_SystolicPressure_Value	Clinical results	Latest top blood-pressure number, mmHg.
+Last_SystolicPressure_Date	Clinical results	Date of the latest systolic reading.
+Last_DiastolicPressure_Value	Clinical results	Latest bottom blood-pressure number, mmHg.
+Last_DiastolicPressure_Date	Clinical results	Date of the latest diastolic reading.
+Last_MeasuredBMI_Value	Clinical results	Latest body mass index. Often missing.
+Last_MeasuredBMI_Date	Clinical results	Date of the latest BMI.
+Last_eGFR_Value	Clinical results	Latest kidney-function score (eGFR), mL/min/1.73m2. Below 60 suggests chronic kidney disease; below 30 is severe.
+Last_eGFR_Date	Clinical results	Date of the latest eGFR result.
+last_fastingplasmaglucose_value	Clinical results	Latest fasting plasma glucose, mmol/L (readings above 30 are treated as mg/dL and divided by 18). 7.0 or more is in the diabetes range.
+last_fastingplasmaglucose_date	Clinical results	Date of the latest fasting glucose.
+last_2hourplasmaglucose_value	Clinical results	Latest 2-hour glucose after a 75 g glucose drink, mmol/L (converted from mg/dL when above 30). 11.1 or more is in the diabetes range.
+last_2hourplasmaglucose_date	Clinical results	Date of the latest 2-hour glucose.
+last_randomplasmaglucose_value	Clinical results	Latest plasma glucose with no fasting or timing stated, mmol/L (converted from mg/dL when above 30).
+last_randomplasmaglucose_date	Clinical results	Date of the latest random glucose.
+last_hba1c_date2	Test dates	Latest HbA1c test billed (date). Can differ from Last_HbA1c_Date when the result was not sent with the claim. (last_hba1c_date in the query)
+last_lipid_panel_date	Test dates	Latest cholesterol test billed.
+last_urine_albumin_date	Test dates	Latest quantitative urine albumin test billed (the albumin part of UACR, CPT 82043).
+last_renal_panel_date	Test dates	Latest creatinine test, or a blood panel that includes it.
+last_egfr_test_date	Test dates	Latest test from which eGFR is calculated: creatinine, panels that include it, or cystatin C.
+last_retinal_screen_date	Test dates	Latest diabetic eye screening: retinal photos or scans, angiography, extended ophthalmoscopy, or an eye exam.
+last_liver_function_date	Test dates	Latest liver function test (liver panel, metabolic panel, ALT or AST).
+last_cbc_date	Test dates	Latest complete blood count.
+last_vitb12_date	Test dates	Latest vitamin B12 test.
+last_potassium_date	Test dates	Latest potassium test, alone or in a panel that includes it.
+last_endocrinology_visit	Specialist and clinic visits	Latest outpatient consultation with an endocrinologist (diabetes specialist).
+last_podiatry_visit	Specialist and clinic visits	Latest outpatient consultation with a podiatrist (foot care).
+last_foot_exam	Test dates	Latest foot examination billed (diabetic foot exam or foot care codes).
+last_ophthalmology_visit	Specialist and clinic visits	Latest outpatient consultation with an ophthalmologist or optometrist.
+last_cardiology_visit	Specialist and clinic visits	Latest outpatient consultation with a cardiologist.
+last_nephrology_visit	Specialist and clinic visits	Latest outpatient consultation with a nephrologist (kidney specialist).
+last_dietitian_visit	Specialist and clinic visits	Latest outpatient visit with a dietitian or nutritionist, or a medical-nutrition-therapy session.
+last_diabeducator_visit	Specialist and clinic visits	Latest outpatient visit with a diabetes or health educator, or a diabetes self-management training session.
+first_e11_date	First diagnosis dates	Earliest claim billed for type 2 diabetes since January 2024 (not the true onset date).
+first_htn_date	First diagnosis dates	Earliest claim billed for hypertension since January 2024.
+first_dyslipidemia_date	First diagnosis dates	Earliest claim billed for high cholesterol or another lipid disorder since January 2024.
+flag_ckd	Co-morbidities	1 if chronic kidney disease (N18, any stage) was billed on any claim since January 2024.
+last_ckd_date	Co-morbidities	Latest claim for chronic kidney disease (N18, any stage).
+flag_hypertensive_kidney_disease	Co-morbidities	1 if kidney disease caused by high blood pressure was billed on any claim since January 2024.
+last_hypertensive_kidney_disease_date	Co-morbidities	Latest claim for kidney disease caused by high blood pressure.
+flag_kidney_failure	Co-morbidities	1 if end-stage kidney disease or dependence on dialysis was billed on any claim since January 2024.
+last_kidney_failure_date	Co-morbidities	Latest claim for end-stage kidney disease or dependence on dialysis.
+flag_acute_kidney_injury	Co-morbidities	1 if a sudden loss of kidney function (acute kidney injury) was billed on any claim since January 2024.
+last_acute_kidney_injury_date	Co-morbidities	Latest claim for a sudden loss of kidney function (acute kidney injury).
+flag_any_kidney_disease	Co-morbidities	1 if any chronic, hypertensive or diabetic kidney disease, or kidney failure was billed on any claim since January 2024.
+last_any_kidney_disease_date	Co-morbidities	Latest claim for any chronic, hypertensive or diabetic kidney disease, or kidney failure.
+flag_dialysis	Co-morbidities	1 if a dialysis session or dialysis dependence was billed on any claim since January 2024.
+last_dialysis_date	Co-morbidities	Latest claim for a dialysis session or dialysis dependence.
+flag_stroke	Co-morbidities	1 if stroke, including its after-effects was billed on any claim since January 2024.
+last_stroke_date	Co-morbidities	Latest claim for stroke, including its after-effects.
+flag_heart_failure	Co-morbidities	1 if heart failure was billed on any claim since January 2024.
+last_heart_failure_date	Co-morbidities	Latest claim for heart failure.
+flag_mi	Co-morbidities	1 if a heart attack, recent or past was billed on any claim since January 2024.
+last_mi_date	Co-morbidities	Latest claim for a heart attack, recent or past.
+flag_other_cvd	Co-morbidities	1 if other heart and blood-vessel disease (angina, valve disease, irregular heartbeat, artery disease, mini-stroke, cardiac devices) was billed on any claim since January 2024.
+last_other_cvd_date	Co-morbidities	Latest claim for other heart and blood-vessel disease (angina, valve disease, irregular heartbeat, artery disease, mini-stroke, cardiac devices).
+dm_complications	Diabetes complications	List of the diabetes complications the member has, for example 'Kidney, Neuropathy, Diabetic foot'.
+dm_complication_count	Diabetes complications	Number of the nine complications below the member has (kidney, eye, neuropathy, circulation, foot, amputation, hypoglycaemia, hyperglycaemic crisis, sepsis).
+flag_dm_kidney	Diabetes complications	1 if diabetic kidney disease was billed on any claim since January 2024.
+last_dm_kidney_date	Diabetes complications	Latest claim for diabetic kidney disease.
+flag_dm_eye	Diabetes complications	1 if a type 2 diabetes eye complication (E11.3x: retinopathy at any stage, macular oedema, diabetic cataract, other) was billed on any claim since January 2024.
+last_dm_eye_date	Diabetes complications	Latest claim for a type 2 diabetes eye complication (E11.3x).
+flag_dm_neuropathy	Diabetes complications	1 if diabetic nerve damage was billed on any claim since January 2024.
+last_dm_neuropathy_date	Diabetes complications	Latest claim for diabetic nerve damage.
+flag_dm_circulatory	Diabetes complications	1 if poor blood flow to the legs caused by diabetes was billed on any claim since January 2024.
+last_dm_circulatory_date	Diabetes complications	Latest claim for poor blood flow to the legs caused by diabetes.
+flag_dm_foot	Diabetes complications	1 if diabetic foot (foot ulcer, Charcot foot, peripheral artery disease with or without gangrene, foot bone infection) was billed on any claim since January 2024.
+last_dm_foot_date	Diabetes complications	Latest claim for diabetic foot (foot ulcer, Charcot foot, peripheral artery disease with or without gangrene, foot bone infection).
+flag_amputation	Diabetes complications	1 if loss of a toe, foot or leg, or an amputation procedure was billed on any claim since January 2024.
+last_amputation_date	Diabetes complications	Latest claim for loss of a toe, foot or leg, or an amputation procedure.
+flag_dm_hypoglycaemia	Diabetes complications	1 if a low-blood-sugar episode (E11.64x or E16.0-E16.2) was billed on any claim since January 2024.
+last_dm_hypoglycaemia_date	Diabetes complications	Latest claim for a low-blood-sugar episode (E11.64x or E16.0-E16.2).
+flag_dm_hyperglycaemic_crisis	Diabetes complications	1 if dangerously high blood sugar (ketoacidosis or hyperosmolar state) was billed on any claim since January 2024.
+last_dm_hyperglycaemic_crisis_date	Diabetes complications	Latest claim for dangerously high blood sugar (ketoacidosis or hyperosmolar state).
+flag_sepsis	Diabetes complications	1 if sepsis (severe body-wide infection) was billed on any claim since January 2024.
+last_sepsis_date	Diabetes complications	Latest claim for sepsis (severe body-wide infection).
+flag_ischemic_heart_disease	Co-morbidities	1 if ischaemic heart disease (I20-I25: angina, heart attack, chronic ischaemic heart disease) was billed on any claim since January 2024.
+last_ischemic_heart_disease_date	Co-morbidities	Latest claim for ischaemic heart disease (I20-I25: angina, heart attack, chronic ischaemic heart disease).
+flag_dm_hypoglycaemia_last90days	Diabetes complications	1 if there was a hypoglycaemia claim (E11.64x or E16.0-E16.2) in the last 90 days.
+flag_EDorIP_with_hypoglycaemia_last90days	Diabetes complications	1 if there was an emergency visit or hospital stay for hypoglycaemia in the last 90 days.
+flag_hypo_hyper_glycemia_last6months	Diabetes complications	1 if there was a hypoglycaemia, hyperglycaemic crisis or 'diabetes with hyperglycaemia' (E11.65) claim in the last 6 months.
+flag_oncology_l12m	Cancer	1 if any claim in the last 12 months (Nov 2025 to Oct 2026) was for cancer (including leukaemia, lymphoma, myeloma), early or uncertain tumours, or a chemotherapy or radiotherapy session.
+flag_oncology_l24m	Cancer	1 if any claim in the last 24 months (Nov 2024 to Oct 2026) was for cancer (including leukaemia, lymphoma, myeloma), early or uncertain tumours, or a chemotherapy or radiotherapy session. Same definition as flag_oncology_l12m.
+last_oncology_claim_date	Cancer	Latest cancer claim since January 2024.
+oncology_dx_codes	Cancer	Cancer diagnosis codes billed since January 2024.
+flag_benign_neoplasm_l12m	Cancer	1 if any claim in the last 12 months (Nov 2025 to Oct 2026) was for a non-cancerous growth (fibroids, polyps, lipomas, benign brain tumours).
+flag_excl_palliative_hospice_ltc_l12m	Exclusions	1 if palliative or hospice care, or a stay in a long-term care facility, in the last 12 months (Nov 2025 to Oct 2026): palliative care encounter (Z51.5), hospice codes or a palliative / hospice provider; nursing-facility visit codes or a long-term-care / nursing-home facility.
+excl_palliative_hospice_ltc_reason	Exclusions	Which part applied: 'Palliative / hospice', 'Long-term care facility', or both.
+flag_dialysis_l12m	Exclusions	1 if a dialysis session or dialysis dependence was billed in the last 12 months (Nov 2025 to Oct 2026) (same definition as flag_dialysis, which looks back to January 2024).
+flag_av_access_procedure_l12m	Exclusions	1 if an AV access procedure for haemodialysis was billed in the last 12 months (Nov 2025 to Oct 2026): fistula or graft creation / revision (CPT 36800-36838), dialysis-circuit procedures (36901-36909), or a dialysis catheter complication (T82.4).
+last_av_access_date_l12m	Exclusions	Date of the latest AV access procedure in the last 12 months.
+flag_excl_transplant_l24m	Exclusions	1 if an organ transplant, transplant complication or aftercare, or anti-rejection therapy in the last 24 months (Nov 2024 to Oct 2026), or on a transplant waiting list (Z76.82) in the last 12 months. Skin, bone and cornea transplants do not count.
+excl_transplant_reason	Exclusions	Which part applied: 'Transplant', 'Anti-rejection therapy', 'Transplant waiting list'.
+flag_excl_adv_neuro_congenital_l12m	Exclusions	1 if any of these in the last 12 months (Nov 2025 to Oct 2026): advanced Parkinson's (motor fluctuations, inpatient stay, deep brain stimulation or infusion therapy), ALS / motor neuron disease, late-stage MS (MS with an inpatient stay or a wheelchair / bed-bound / dependency code), a major congenital condition, or a severe brain / spinal injury with attendant care (or paraplegia / tetraplegia / vegetative state).
+excl_adv_neuro_congenital_reason	Exclusions	Which conditions applied, for example 'ALS / MND, Late-stage MS'.
+flag_excl_psych_sud_dementia_l12m	Exclusions	1 if any of these in the last 12 months (Nov 2025 to Oct 2026): a psychiatric inpatient stay, an active substance use disorder (F10-F19 except nicotine and 'in remission', or an addiction-treatment medicine), or advanced dementia (severe dementia code, or dementia with a mobility-dependence code).
+excl_psych_sud_dementia_reason	Exclusions	Which conditions applied: 'Psychiatric inpatient stay', 'Active substance use disorder', 'Advanced dementia'.
+flag_excl_ventilator_tpn_homenursing_l12m	Exclusions	1 if ventilator dependence, home / outpatient parenteral nutrition (TPN), or 24-hour home nursing in the last 12 months (Nov 2025 to Oct 2026). 24-hour home nursing is approximated as home nursing billed on 90 or more different days.
+excl_ventilator_tpn_homenursing_reason	Exclusions	Which part applied, for example 'TPN, Home nursing (120 days)'.
+home_nursing_days_l12m	Exclusions	Number of different days with home nursing billed in the last 12 months.
+flag_excl_pregnant_postpartum	Exclusions	1 if pregnancy care was billed in the last 12 months, or a pregnancy ended (delivery, miscarriage, termination) in the last 12 months.
+excl_pregnancy_status	Exclusions	'Pregnant' (antenatal claim in the last 10 months with no later pregnancy end), 'Post-partum (pregnancy ended <date>)', or 'Pregnancy in last 12 months, outcome not on claims'.
+max_episode_share_since2024	Exclusions	Share of everything Daman paid for the member since January 2024 that comes from their single most expensive episode of care (0-1). Above 0.60 sets flag_excl_single_episode_gt60pct.
+flag_excl_single_episode_gt60pct	Exclusions	1 if one episode accounts for more than 60% of the member's payable since January 2024 (an acute, one-off cost rather than chronic).
+specialty_rx_share_since2024	Exclusions	Share of everything Daman paid for the member since January 2024 that went on specialty medicines (MS, haemophilia, HIV, PAH, cystic fibrosis, enzyme replacement, immunology biologics, hepatitis C, immunoglobulin, other rare disease) (0-1). Above 0.60 sets flag_excl_specialty_rx_gt60pct.
+flag_excl_specialty_rx_gt60pct	Exclusions	1 if specialty medicines account for more than 60% of the member's payable since January 2024.
+specialty_rx_areas	Exclusions	Therapy areas of the specialty medicines billed, for example 'MS, Immunology biologic'.
+gp_claims_6m	Specialist and clinic visits	Number of clinic consultations with a GP or family physician in the last 6 months (emergency visits excluded).
+specialist_claims_6m	Specialist and clinic visits	Number of clinic consultations with a specialist or consultant in the last 6 months (emergency, anaesthesia and intensive care excluded).
+last_ip_admit_date	Hospital stays and follow-up	Admission date of the latest hospital stay.
+last_ip_discharge_date	Hospital stays and follow-up	Discharge date of the latest hospital stay.
+second_last_ip_discharge_date	Hospital stays and follow-up	Discharge date of the stay before that; two close together suggest a readmission.
+last_ip_facility	Hospital stays and follow-up	Hospital of the latest stay.
+last_ip_dx	Hospital stays and follow-up	Main diagnosis code of the latest stay.
+last_ip_dx_desc	Hospital stays and follow-up	Main diagnosis description of the latest stay.
+last_ip_drg_desc	Hospital stays and follow-up	DRG (hospital payment group) description of the latest stay: what the stay was for.
+last_ip_discharge_type	Hospital stays and follow-up	How the latest stay ended, for example routine discharge or transfer.
+last_visit_date	Specialist and clinic visits	Latest clinic consultation of any kind.
+first_visit_after_discharge	Hospital stays and follow-up	First clinic consultation after the latest discharge (emergency visits do not count).
+days_discharge_to_first_visit	Hospital stays and follow-up	Days between the latest discharge and that first clinic visit.
+flag_no_visit_after_discharge	Hospital stays and follow-up	1 if discharged and no clinic visit since. A very recent discharge may not have had time yet.
+flag_missing_T2Drefill_post_last_discharge	Hospital stays and follow-up	1 if a diabetes medicine filled in the 6 months before the last admission was not refilled within 30 days of discharge (checked once 30 days have passed).
+flag_missing_HTNrefill_post_last_discharge	Hospital stays and follow-up	The same for blood-pressure medicines.
+last_ed_visit_date	Emergency visits	Date of the latest emergency visit since January 2024.
+last_ed_facility	Emergency visits	Where the latest emergency visit was.
+last_ed_dx	Emergency visits	Main diagnosis code of the latest emergency visit.
+last_ed_dx_desc	Emergency visits	Main diagnosis description of the latest emergency visit.
+active_drug_class_count	Medicines	Number of diabetes and blood-pressure medicine classes the member still has supply of on the as-of date (30-day grace).
+active_drug_classes	Medicines	Those active classes, for example 'ARB, DPP4, METFORMIN'.
+flag_active_ACEinhibitor	Medicines	1 if an ACE inhibitor is active.
+flag_active_ARBinhibitor	Medicines	1 if an ARB is active.
+flag_active_insulin	Medicines	1 if insulin is active.
+flag_active_sulfonylurea	Medicines	1 if a sulfonylurea is active.
+flag_overlap_ACE_ARB_more_than_30days	Medicines	1 if ACE inhibitor and ARB supplies overlapped by more than 30 days in total in the last 365 days.
+flag_glucagon_last12months	Medicines	1 if rescue glucagon (emergency kit for severe low sugar) was dispensed in the last 365 days.
+flag_no_glucagon_last12months	Medicines	1 if no rescue glucagon in the last 365 days although the member is on insulin, or on a sulfonylurea with a past hypoglycaemia claim.
+distinct_medicines_90d	Medicines	Number of different medicines (all therapy areas) filled in the last 90 days; a high number points to polypharmacy.
+t2d_drug_classes_l12m	Medicines	Every diabetes medicine class filled at least once in the last 12 months (Nov 2025 to Oct 2026), including ones since stopped.
+pdc_metformin	Medicine adherence	Adherence to metformin: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_sglt2	Medicine adherence	Adherence to SGLT2 inhibitors: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_dpp4	Medicine adherence	Adherence to DPP-4 inhibitors: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_glp1	Medicine adherence	Adherence to GLP-1 / GIP medicines: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_sulfonylurea	Medicine adherence	Adherence to sulfonylureas: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_tzd	Medicine adherence	Adherence to TZDs (pioglitazone): share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_any_t2d_noninsulin	Medicine adherence	Adherence to any non-insulin diabetes medicine (covered if any of them is at home): share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+first_t2d_fill_date	Medicines	First diabetes medicine fill since January 2024.
+latest_new_t2d_class_start_date	Medicines	First fill of the most recently started diabetes medicine class.
+last_t2d_fill_date	Medicines	Latest diabetes medicine fill.
+days_since_last_t2d_fill	Medicine adherence	Days from the latest diabetes medicine fill to the as-of date.
+days_since_t2d_supply_ran_out	Medicine adherence	Days since the latest diabetes supply would have run out; negative means supply is still at home.
+flag_t2d_rx_gap_over_30d	Medicine adherence	1 if the diabetes supply ran out more than 30 days ago.
+htn_drug_classes_l12m	Medicines	Every blood-pressure medicine class filled at least once in the last 12 months (Nov 2025 to Oct 2026), including ones since stopped.
+pdc_acei	Medicine adherence	Adherence to ACE inhibitors: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_arb	Medicine adherence	Adherence to ARBs: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_ccb	Medicine adherence	Adherence to calcium-channel blockers: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_beta_blocker	Medicine adherence	Adherence to beta blockers: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_thiazide	Medicine adherence	Adherence to thiazide diuretics: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_mra	Medicine adherence	Adherence to MRAs (spironolactone type): share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+pdc_any_htn	Medicine adherence	Adherence to any blood-pressure medicine: share of days, from the first fill in the last 365 days to the as-of date, with supply at home (0-1; 0.80+ is the usual target). Needs at least two fills.
+first_htn_fill_date	Medicines	First blood-pressure medicine fill since January 2024.
+latest_new_htn_class_start_date	Medicines	First fill of the most recently started blood-pressure medicine class.
+first_ACE_ARB_MRA_thiazide_fill_date	Medicines	First fill of the most recently started ACE inhibitor, ARB, MRA or thiazide class (kidney and potassium check due 7-14 days after).
+last_htn_fill_date	Medicines	Latest blood-pressure medicine fill.
+days_since_last_htn_fill	Medicine adherence	Days from the latest blood-pressure medicine fill to the as-of date.
+days_since_htn_supply_ran_out	Medicine adherence	Days since the latest blood-pressure supply would have run out; negative means supply is still at home.
+flag_htn_rx_gap_over_30d	Medicine adherence	1 if the blood-pressure supply ran out more than 30 days ago.
+er_visits_6m	Hospital and emergency use	Emergency visits in the last 6 months (several claims on one day count once).
+ip_admissions_6m	Hospital and emergency use	Hospital admissions in the last 6 months (one per hospital and admission date).
+ed_visits_l12m	Hospital and emergency use	Emergency visits in the last 12 months (Nov 2025 to Oct 2026).
+ip_admissions_l12m	Hospital and emergency use	Hospital admissions in the last 12 months (Nov 2025 to Oct 2026).
+l12m_payable_T2D	Cost	Paid on claim lines whose diagnosis is type 2 diabetes (E11), AED.
+l12m_payable_non_phg_T2D	Cost	Diabetes payable paid outside PHG, AED.
+l12m_share_non_phg_T2D	Cost	Share of diabetes payable paid outside PHG (0-1).
+l12m_payable_HTN	Cost	Paid on claim lines whose diagnosis is hypertension (I10), AED.
+l12m_payable_non_phg_HTN	Cost	Hypertension payable paid outside PHG, AED.
+l12m_share_non_phg_HTN	Cost	Share of hypertension payable paid outside PHG (0-1).
+encounters_l12m	Provider loyalty and encounters	Number of encounters (Daman episodes of care) in the last 12 months (Nov 2025 to Oct 2026).
+encounters_l12m_op	Provider loyalty and encounters	Encounters that were outpatient only. OP + ED + IP = encounters_l12m.
+encounters_l12m_ed	Provider loyalty and encounters	Encounters with an emergency visit (and no hospital stay).
+encounters_l12m_ip	Provider loyalty and encounters	Encounters that include a hospital stay.
+providers_l12m	Provider loyalty and encounters	Number of different providers used (owner group, or facility when it has no group); pharmacies count.
+phg_share_l12m_encounters	Provider loyalty and encounters	Share of encounters at PHG (SEHA, SSMC) (0-1). Each encounter is credited to one provider; the six add up to 1.
+mediclinic_share_l12m_encounters	Provider loyalty and encounters	Share of encounters at Mediclinic (0-1). Each encounter is credited to one provider; the six add up to 1.
+nmc_share_l12m_encounters	Provider loyalty and encounters	Share of encounters at NMC (0-1). Each encounter is credited to one provider; the six add up to 1.
+burjeel_share_l12m_encounters	Provider loyalty and encounters	Share of encounters at Burjeel (0-1). Each encounter is credited to one provider; the six add up to 1.
+mubadala_share_l12m_encounters	Provider loyalty and encounters	Share of encounters at Mubadala (0-1). Each encounter is credited to one provider; the six add up to 1.
+others_share_l12m_encounters	Provider loyalty and encounters	Share of encounters at all other providers (0-1). Each encounter is credited to one provider; the six add up to 1.
+top_groupownerlevel_l12m_encounters	Provider loyalty and encounters	Provider with the most encounters in the last 12 months (Nov 2025 to Oct 2026).
+top_groupownerlevel_l12m_encounter_share	Provider loyalty and encounters	That provider's share of encounters (0-1).
+top_groupownerlevel_l6m_encounters	Provider loyalty and encounters	Provider with the most encounters in the last 6 months.
+top_groupownerlevel_l3m_encounters	Provider loyalty and encounters	Provider with the most encounters in the last 3 months.
+top_groupownerlevel_l12m_op_encounters	Provider loyalty and encounters	Provider with the most outpatient encounters in the last 12 months (Nov 2025 to Oct 2026).
+top_groupownerlevel_l12m_op_encounter_share	Provider loyalty and encounters	That provider's share of encounters_l12m_op (0-1).
+l12m_payable_T2D_op	Cost	Diabetes payable, outpatient (excluding emergency).
+l12m_payable_T2D_ip	Cost	Diabetes payable, inpatient.
+l12m_payable_T2D_ed	Cost	Diabetes payable, emergency.
+l12m_payable_HTN_op	Cost	Hypertension payable, outpatient (excluding emergency).
+l12m_payable_HTN_ip	Cost	Hypertension payable, inpatient.
+l12m_payable_HTN_ed	Cost	Hypertension payable, emergency.
+l12m_T2D_drugs_payable	Cost by type of service	Diabetes payable in the last 12 months (Nov 2025 to Oct 2026) for medicines, AED. The six blocks add up to l12m_payable_T2D.
+l12m_T2D_consultation_payable	Cost by type of service	Diabetes payable in the last 12 months (Nov 2025 to Oct 2026) for doctor consultations, AED. The six blocks add up to l12m_payable_T2D.
+l12m_T2D_labandpath_payable	Cost by type of service	Diabetes payable in the last 12 months (Nov 2025 to Oct 2026) for lab and pathology tests, AED. The six blocks add up to l12m_payable_T2D.
+l12m_T2D_DRG_payable	Cost by type of service	Diabetes payable in the last 12 months (Nov 2025 to Oct 2026) for hospital stays paid as a DRG package, AED. The six blocks add up to l12m_payable_T2D.
+l12m_T2D_procedures_payable	Cost by type of service	Diabetes payable in the last 12 months (Nov 2025 to Oct 2026) for procedures and surgery, AED. The six blocks add up to l12m_payable_T2D.
+l12m_T2D_others_payable	Cost by type of service	Diabetes payable in the last 12 months (Nov 2025 to Oct 2026) for everything else (radiology, consumables, physiotherapy, dental, per-diem), AED. The six blocks add up to l12m_payable_T2D.
+l12m_HTN_drugs_payable	Cost by type of service	Hypertension payable in the last 12 months (Nov 2025 to Oct 2026) for medicines, AED. The six blocks add up to l12m_payable_HTN.
+l12m_HTN_consultation_payable	Cost by type of service	Hypertension payable in the last 12 months (Nov 2025 to Oct 2026) for doctor consultations, AED. The six blocks add up to l12m_payable_HTN.
+l12m_HTN_labandpath_payable	Cost by type of service	Hypertension payable in the last 12 months (Nov 2025 to Oct 2026) for lab and pathology tests, AED. The six blocks add up to l12m_payable_HTN.
+l12m_HTN_DRG_payable	Cost by type of service	Hypertension payable in the last 12 months (Nov 2025 to Oct 2026) for hospital stays paid as a DRG package, AED. The six blocks add up to l12m_payable_HTN.
+l12m_HTN_procedures_payable	Cost by type of service	Hypertension payable in the last 12 months (Nov 2025 to Oct 2026) for procedures and surgery, AED. The six blocks add up to l12m_payable_HTN.
+l12m_HTN_others_payable	Cost by type of service	Hypertension payable in the last 12 months (Nov 2025 to Oct 2026) for everything else (radiology, consumables, physiotherapy, dental, per-diem), AED. The six blocks add up to l12m_payable_HTN.
+last_claim_date	Last contact	Date of the latest claim of any kind (can be a pharmacy refill).
+last_claim_costblocks	Last contact	Types of service billed on that date, for example 'Consultation, Drugs'.
+last_claim_facilities	Last contact	Facilities that billed on that date.
+last_claim_specialties	Last contact	Specialties of doctors consulted on that date.
+last_claim_dx_codes	Last contact	Diagnosis codes billed on that date.
+last_claim_dx_desc	Last contact	Diagnosis descriptions billed on that date.
+last_claim_medicines	Last contact	Medicines dispensed on that date.
+last_claim_activities	Last contact	Services other than medicines billed on that date (code and short description).
+last_claim_payable	Last contact	Total Daman paid for that date, AED.
+flag_current_smoker_l12m	Smoking	1 if current tobacco use was recorded in the last 12 months (Nov 2025 to Oct 2026): nicotine dependence (F17.2x, except 'in remission'), tobacco use (Z72.0), smoking in pregnancy (O99.33x), tobacco counselling (Z71.6, CPT 99406 / 99407), CPT II current-smoker codes (1034F, 1035F, 4000F, 4001F), a stop-smoking medicine (varenicline / Champix, Zyban, nicotine replacement), or a smoking observation (codes 3450 / 3451).
+last_smoking_evidence_date	Smoking	Latest date with any of the evidence above, from claims or observations, since January 2024.
+flag_former_smoker_code	Smoking	1 if a former-smoker code was billed on any claim since January 2024: history of nicotine dependence (Z87.891) or nicotine dependence 'in remission' (F17.201, F17.211, F17.221, F17.291).
+flag_ckd_l12m	Conditions, last 12 months	1 if chronic kidney disease (N18, any stage) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_ckd, which looks back to January 2024.
+flag_hypertensive_kidney_disease_l12m	Conditions, last 12 months	1 if kidney disease caused by high blood pressure was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_hypertensive_kidney_disease, which looks back to January 2024.
+flag_kidney_failure_l12m	Conditions, last 12 months	1 if end-stage kidney disease or dependence on dialysis was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_kidney_failure, which looks back to January 2024.
+flag_acute_kidney_injury_l12m	Conditions, last 12 months	1 if acute kidney injury was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_acute_kidney_injury, which looks back to January 2024.
+flag_any_kidney_disease_l12m	Conditions, last 12 months	1 if any chronic, hypertensive or diabetic kidney disease, or kidney failure was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_any_kidney_disease, which looks back to January 2024.
+flag_stroke_l12m	Conditions, last 12 months	1 if stroke, including its after-effects was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_stroke, which looks back to January 2024.
+flag_heart_failure_l12m	Conditions, last 12 months	1 if heart failure was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_heart_failure, which looks back to January 2024.
+flag_mi_l12m	Conditions, last 12 months	1 if a heart attack, recent or past was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_mi, which looks back to January 2024.
+flag_other_cvd_l12m	Conditions, last 12 months	1 if other heart and blood-vessel disease (angina, valve disease, irregular heartbeat, artery disease, mini-stroke, cardiac devices) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_other_cvd, which looks back to January 2024.
+flag_dm_kidney_l12m	Conditions, last 12 months	1 if diabetic kidney disease was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_dm_kidney, which looks back to January 2024.
+flag_dm_eye_l12m	Conditions, last 12 months	1 if a type 2 diabetes eye complication (E11.3x: retinopathy, macular oedema, cataract, other) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_dm_eye, which looks back to January 2024.
+flag_dm_neuropathy_l12m	Conditions, last 12 months	1 if diabetic nerve damage (E11.4x) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_dm_neuropathy, which looks back to January 2024.
+flag_dm_circulatory_l12m	Conditions, last 12 months	1 if poor blood flow caused by diabetes (E11.5x) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_dm_circulatory, which looks back to January 2024.
+flag_dm_foot_l12m	Conditions, last 12 months	1 if diabetic foot (foot ulcer, Charcot foot, peripheral artery disease with or without gangrene, foot bone infection) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_dm_foot, which looks back to January 2024.
+flag_amputation_l12m	Conditions, last 12 months	1 if loss of a toe, foot or leg, or an amputation procedure was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_amputation, which looks back to January 2024.
+flag_dm_hypoglycaemia_l12m	Conditions, last 12 months	1 if a low-blood-sugar episode (E11.64x or E16.0-E16.2) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_dm_hypoglycaemia, which looks back to January 2024.
+flag_dm_hyperglycaemic_crisis_l12m	Conditions, last 12 months	1 if dangerously high blood sugar (ketoacidosis or hyperosmolar state) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_dm_hyperglycaemic_crisis, which looks back to January 2024.
+flag_sepsis_l12m	Conditions, last 12 months	1 if sepsis was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_sepsis, which looks back to January 2024.
+flag_ischemic_heart_disease_l12m	Conditions, last 12 months	1 if ischaemic heart disease (I20-I25) was billed in the last 12 months (Nov 2025 to Oct 2026). Same codes as flag_ischemic_heart_disease, which looks back to January 2024.
+flag_dyslipidemia_l12m	Conditions, last 12 months	1 if high cholesterol or another lipid disorder was billed in the last 12 months (Nov 2025 to Oct 2026) (E78, except E78.6 and E78.7).
+flag_obesity	Conditions, last 12 months	1 if the latest measured BMI is 30 or more (any date), or an obesity code was billed in the last 12 months (E66 except E66.3 overweight; Z68.3x / Z68.4x = BMI 30 or more).
+flag_cad_mi_l12m	Conditions, last 12 months	1 if coronary artery disease or heart attack was billed in the last 12 months (Nov 2025 to Oct 2026): I20-I25, or coronary bypass / stent / angioplasty status (Z95.1, Z95.5, Z98.61).
+flag_stroke_tia_l12m	Conditions, last 12 months	1 if stroke or TIA was billed in the last 12 months (Nov 2025 to Oct 2026): I60-I64, I69, G46, G45 (except G45.4), or history of TIA / cerebral infarction (Z86.73).
+flag_pad_l12m	Conditions, last 12 months	1 if peripheral arterial disease was billed in the last 12 months (Nov 2025 to Oct 2026): diabetic peripheral angiopathy (E11.51, E11.52), atherosclerosis of limb arteries or grafts (I70.2-I70.7), or peripheral vascular disease (I73.9).
+flag_dm_retinopathy_l12m	Conditions, last 12 months	1 if diabetic retinopathy was billed in the last 12 months (Nov 2025 to Oct 2026) (E11.31-E11.35, with or without macular oedema; cataract and other eye codes not included).
+flag_peripheral_neuropathy_l12m	Conditions, last 12 months	1 if peripheral neuropathy was billed in the last 12 months (Nov 2025 to Oct 2026): diabetic neuropathy unspecified / polyneuropathy (E11.40, E11.42), polyneuropathy (G62.9, G63).
+flag_dm_foot_ulcer_l12m	Conditions, last 12 months	1 if a foot ulcer was billed in the last 12 months (Nov 2025 to Oct 2026): diabetic foot ulcer (E11.621) or a chronic ulcer of the heel, midfoot or other part of the foot (L97.4, L97.5).
+flag_major_amputation_l12m	Conditions, last 12 months	1 if a major (leg) amputation was billed in the last 12 months (Nov 2025 to Oct 2026): absence of leg below / above the knee (Z89.5, Z89.6), or below-knee, above-knee or hip amputation procedures. Toe, foot and ankle amputations are not included.
+flag_dka_l12m	Conditions, last 12 months	1 if diabetic ketoacidosis (E11.1x) was billed in the last 12 months (Nov 2025 to Oct 2026).
+Last_UACR_Value	Kidney	Latest urine albumin-to-creatinine ratio, mg/g (results in mg/mmol are converted: x 8.84). 30-299 = moderately raised, 300+ = severely raised.
+Last_UACR_Date	Kidney	Date of the latest UACR result.
+ckd_stage_l12m	Kidney	Highest CKD stage coded in the last 12 months, in the risk calculator's wording: 'Stage 5 / kidney failure', 'Stage 4', 'Stage 3b', 'Stage 3a' (also when stage 3 is coded without a / b), 'Stage 1-2', or 'Not documented'.
+l12m_payable_DiaborHTNrelated	Diabetes / HTN related cost and use	Paid in the last 12 months (Nov 2025 to Oct 2026) on claim lines whose diagnosis is on the diabetes / hypertension list, AED. OP + IP + ED, the six cost types, and the six provider groups each add up to this.
+payable_last24months_DiaborHTNrelated	Diabetes / HTN related cost and use	Paid in the last 24 months (Nov 2024 to Oct 2026) on diabetes / hypertension related claim lines, AED (from the separate 24-month query, 'payable info' sheet).
+payable_since2024_DiaborHTNrelated	Diabetes / HTN related cost and use	Paid since January 2024 on diabetes / hypertension related claim lines, AED (from the separate query, 'payable info' sheet).
+l12m_payable_DiaborHTNrelated_op	Diabetes / HTN related cost and use	Related payable, outpatient (excluding emergency).
+l12m_payable_DiaborHTNrelated_ip	Diabetes / HTN related cost and use	Related payable, inpatient.
+l12m_payable_DiaborHTNrelated_ed	Diabetes / HTN related cost and use	Related payable, emergency.
+l12m_payable_DiaborHTNrelated_drugs	Diabetes / HTN related cost and use	Related payable for medicines, AED. The six cost types add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_consultation	Diabetes / HTN related cost and use	Related payable for doctor consultations, AED. The six cost types add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_labandpath	Diabetes / HTN related cost and use	Related payable for lab and pathology tests, AED. The six cost types add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_DRG	Diabetes / HTN related cost and use	Related payable for hospital stays paid as a DRG package, AED. The six cost types add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_procedures	Diabetes / HTN related cost and use	Related payable for procedures and surgery, AED. The six cost types add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_others	Diabetes / HTN related cost and use	Related payable for everything else (radiology, consumables, physiotherapy, dental, per-diem), AED. The six cost types add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_PHG	Diabetes / HTN related cost and use	Related payable paid to PHG (SEHA, SSMC), AED. The six provider groups add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_Mediclinic	Diabetes / HTN related cost and use	Related payable paid to Mediclinic, AED. The six provider groups add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_NMC	Diabetes / HTN related cost and use	Related payable paid to NMC, AED. The six provider groups add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_Burjeel	Diabetes / HTN related cost and use	Related payable paid to Burjeel, AED. The six provider groups add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_Mubadala	Diabetes / HTN related cost and use	Related payable paid to Mubadala, AED. The six provider groups add up to l12m_payable_DiaborHTNrelated.
+l12m_payable_DiaborHTNrelated_OtherProviders	Diabetes / HTN related cost and use	Related payable paid to all other providers, AED. The six provider groups add up to l12m_payable_DiaborHTNrelated.
+l12m_encounters_DiaborHTNrelated	Diabetes / HTN related cost and use	Number of encounters (Daman episodes of care) in the last 12 months (Nov 2025 to Oct 2026) with at least one diabetes / hypertension related claim line.
+l12m_encounters_op_DiaborHTNrelated	Diabetes / HTN related cost and use	Related encounters that were outpatient only. OP + ED + IP = l12m_encounters_DiaborHTNrelated.
+l12m_encounters_ed_DiaborHTNrelated	Diabetes / HTN related cost and use	Related encounters with an emergency visit (and no hospital stay).
+l12m_encounters_ip_DiaborHTNrelated	Diabetes / HTN related cost and use	Related encounters that include a hospital stay.
+top_groupownerlevel_l12m_op_DiaborHTNrelated_encounters	Diabetes / HTN related cost and use	Provider (owner group, or facility when it has no group) with the most related outpatient encounters in the last 12 months.
+top_groupownerlevel_l12m_op_DiaborHTNrelated_encounter_share	Diabetes / HTN related cost and use	That provider's share of l12m_encounters_op_DiaborHTNrelated (0-1).
+providers_l12m_DiaborHTNrelated	Diabetes / HTN related cost and use	Number of different providers (owner group, or facility when it has no group) with a related claim line in the last 12 months.
+l12m_ED_visits_DiaborHTNrelated	Diabetes / HTN related cost and use	Emergency visits in the last 12 months (Nov 2025 to Oct 2026) with a related diagnosis, one per day; a visit followed the same or next day by a related admission is not counted.
+l12m_IP_admissions_DiaborHTNrelated	Diabetes / HTN related cost and use	Hospital admissions in the last 12 months (Nov 2025 to Oct 2026) with a related diagnosis (the admission's main diagnosis), planned or not; one per hospital and admission date.

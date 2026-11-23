@@ -1,0 +1,4 @@
+pathway_code,name,cohort_feature,description
+T2D,Type 2 diabetes,cohort_t2d_l12m,Members identified with type 2 diabetes in the last 12 months (E11 codes or diabetes medicines)
+HTN,Hypertension,cohort_htn_l12m,Members identified with hypertension in the last 12 months (I10–I15 codes or antihypertensive medicines)
+T2D·HTN,Type 2 diabetes and hypertension,,Members in both pathways; both trigger families apply

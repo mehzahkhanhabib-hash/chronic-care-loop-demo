@@ -1,0 +1,8 @@
+node_modules/
+data/db/*.sqlite
+data/db/*.sqlite-journal
+apps/*/dist/
+.env
+*.log
+.DS_Store
+docs/demo-scenarios/screenshots/*.tmp.png

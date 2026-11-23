@@ -1,0 +1,3 @@
+mode,trigger_mode_in_kit,meaning
+automated,all,Keeps every approved trigger tagged with the cohort's diagnoses
+business,list,Keeps only the triggers listed in triggers_json

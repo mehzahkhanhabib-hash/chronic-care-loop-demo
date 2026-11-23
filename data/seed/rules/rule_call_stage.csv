@@ -1,0 +1,11 @@
+stage_no,stage,what_the_nurse_does,portal_step
+1,Prepare,Reads why now; the script order is why → do → done-when,Queue card: why we're calling
+2,Connect,Places the call,Call bar
+3,Screen safety,A red flag stops the script,Urgent banner; RED alert
+4,Consent,Logs consent on the recorded call,Consent card
+5,Assess,Asks only the cannot-tell questions,Review for this call
+6,Synthesize,Confirms the picture with the member,Review complete
+7,Plan,Agrees up to three CURRENT needs,Care plan actions to agree
+8,Close,Agrees the owner and the date,Booking; member agrees
+9,Follow up,Records the outcome; follow-ups are created,Outcome; next steps
+10,Transition,Hands over to the coordinator tasks,Actions page

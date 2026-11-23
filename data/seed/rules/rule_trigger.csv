@@ -1,0 +1,15 @@
+trigger_code,name,pathway,class,sort_order,raw_data_rulebook,fires_when_rulebook,extract_flag,use_variant,status
+Trig3,Hypoglycaemia,T2D,safety,1,"ICD E16.0–E16.2, E11.64; CGM < 3.9 mmol/L",Any event in 12 months,Trig3_hypoglycemia_tx,extract,Draft: needs clinical sign-off (rulebook §8)
+BPU,BP urgent,HTN,safety,2,Home or claim BP,BP ≥ 180/110,,rulebook,Draft: needs clinical sign-off (rulebook §8)
+Trig4,Post-discharge care,T2D · HTN,acute,3,"IP or ED encounter, discharge date","Discharge in the last 14 days, or 2 or more ED visits in 90 days",Trig4_post_discharge_care,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig1,HbA1c above target,T2D,unctl,4,LOINC 4548-4,Last value ≥ individual goal (around 8%),Trig1_HbA1c_above_target,extract,Draft: needs clinical sign-off (rulebook §8). Extract flag fires at 6.5%: decide which variant to use
+Trig2,BP treatment review,HTN,unctl,5,SBP/DBP observations,≥ 130/80 (DM or CKD) or ≥ 140/90,Trig2_HTN_tx_review,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig5,Kidney check,T2D · HTN,unctl,6,"eGFR 69405-9, UACR 9318-7","eGFR < 60, or no eGFR/UACR in 12 months",Trig5_Kidney_check,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig9,Medication adherence,T2D · HTN,barrier,7,"Pharmacy fills, days supply","PDC < 80% over 180 days, or a gap of more than 30 days",Trig9_medication_adherence,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig6,HbA1c test due,T2D,gap,8,Last HbA1c date,> 6 months (or > 3 months if off target),Trig6_HbA1c_due,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig12,Eye exam due,T2D,gap,9,Retinal CPT 92250/92227,None in 24 months,Trig12_eyeexam_due,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig13,High-risk foot,T2D,gap,10,"Foot CPT 2028F/G0245; ulcer, neuropathy, PAD","No exam in 12 months, or a high-risk code",Trig13_highriskfoot_monitor,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig7,Potassium due,HTN,gap,11,"K+ result, ACE/ARB/diuretic fills",On an RAAS inhibitor or diuretic with no K+ in 12 months,Trig7_Renal_Potassium_due,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig11,Annual labs,T2D · HTN,gap,12,"Lipids, creatinine",None in 12 months,Trig11_annual_labs_due,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig10,New diagnosis,T2D · HTN,goal,13,First E11 / I10 claim,First code in the last 90 days,Trig10_new_diagnosis,extract,Draft: needs clinical sign-off (rulebook §8)
+Trig8,Nutrition and education,T2D,goal,14,No dietitian or DSMES claim,None in 12 months,Trig8_nutrition_due,extract,Draft: needs clinical sign-off (rulebook §8)

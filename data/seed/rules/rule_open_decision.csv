@@ -1,0 +1,6 @@
+item_no,decision,status,who_decides
+1,"MemberFeature tag on the graph, or features in ClickHouse with nGQL limited to claim traversals",Open,Data platform
+2,"Clinical sign-off on tier cut-offs, AMBER/RED rules and trigger thresholds",Open: every rule carries status Draft,Clinical lead
+3,A separate acute red-flag pathway with an owned SLA after escalation,Open,Clinical lead
+4,Member crosswalk: E_LIFE_ID (claims) to PERSONID (graph),Open,Data platform
+5,"nGQL load limits: 60 s timeout, 250k rows, nightly only, preview 8 rows",Proposed,Data platform

@@ -1,0 +1,11 @@
+step,name,what_happens
+A,Assigned,Member assigned to a nurse
+B,Urgent?,Urgent flag checked first
+C,Contact,Contact made
+D,Consent,No consent: close or pause; nothing below D is readable
+E,New problem?,A new serious problem goes to the event pathway
+F,Pathway,"DM, HTN or both; shared questions asked once"
+G,Alert,Alert colour
+H,Prioritise,Order the needs
+I,≤ 3 needs,At most three CURRENT needs
+J,Document,"Purpose and finding, actions, owner and due date, alert, next contact, CURRENT / NEXT / FUTURE"

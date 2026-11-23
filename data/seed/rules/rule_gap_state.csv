@@ -1,0 +1,6 @@
+state,sort_order,moved_by,evidence
+Potential,1,Nightly run,Trigger fired
+Verified,2,Nurse,Confirmed with the member on the call (member assertion)
+Scheduled,3,Nurse,Action agreed or booked
+Reported,4,Nurse,Nurse marked it done; not yet seen in claims
+Closed,5,Nightly run,Success criterion appears in claims (the trigger stops firing)

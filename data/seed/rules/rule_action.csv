@@ -1,0 +1,15 @@
+action_code,trigger_code,title,owner_role,channel,done_when,evidence,prerequisite,escalate_to
+ACT-HYPO,Trig3,"Same-day clinician review, hypo plan, glucagon check",Doctor,Call,Review note and medicine change logged,Clinician note; glucagon fill,,Clinical lead
+ACT-BPU,BPU,Stop the script and escalate the same day,Nurse → doctor,Call,Escalation closed,Escalation outcome,,Clinical lead
+ACT-POSTDC,Trig4,GP follow-up within 72 h; medicine reconciliation,Coordinator,Call,GP outpatient claim within 7 days,GP outpatient claim,,
+ACT-A1C-REV,Trig1,Glycaemic treatment review,Doctor,Call,"Goal, decision and next test date recorded",Outpatient claim + recorded goal,,
+ACT-BP-REV,Trig2,Home BP recheck and clinician review,Nurse,Call,"Readings reviewed, next BP date set",BP observation,,
+ACT-KIDNEY,Trig5,Book eGFR and UACR; nephrology if eGFR < 30,Coordinator,Call,Lab claim with a result,eGFR / UACR lab claim,,
+ACT-ADH,Trig9,Refill and barrier check; pharmacist if 3 or more classes,Coordinator / pharmacist,Call,Next fill dispensed within 14 days,Pharmacy fill,,
+ACT-A1C-LAB,Trig6,Book HbA1c at an in-network lab,Coordinator,Call or WhatsApp,Lab claim,HbA1c lab claim,,
+ACT-EYE,Trig12,Confirm the last exam or refer,Nurse,Call,Report or referral claim,Retinal CPT 92250/92227 or referral,,
+ACT-FOOT,Trig13,Foot exam; podiatry if high risk,Nurse,Call,Exam claim,Foot CPT 2028F/G0245,,
+ACT-K,Trig7,Add K+ to the next lab order,Coordinator,Call or WhatsApp,Lab claim,Potassium lab claim,,
+ACT-LABS,Trig11,One bundled lab visit,Coordinator,Call or WhatsApp,Lab claims,Lipid and creatinine lab claims,,
+ACT-NEWDX,Trig10,Baseline assessment and DSMES referral,Nurse,Call,Assessment documented,Assessment note; DSMES referral,,
+ACT-DSMES,Trig8,"Self-management goal, dietitian",Nurse,Call,Goal set and reviewed,Dietitian / DSMES claim,Trig1,

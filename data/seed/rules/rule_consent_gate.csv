@@ -1,0 +1,11 @@
+item,before_consent,note
+Member header,shown,
+Why we're calling,shown,
+Consent card,shown,Consent is logged on a recorded call only
+Member 360,not rendered,"Not rendered at all, rather than hidden"
+"Profile review, actions and care gaps",not rendered,
+Outcome form,not rendered,
+Tasks and Timeline tabs,not rendered,
+Care plan,not rendered,
+After-consent lines of the script,not rendered,
+Any further contact after a decline,suppressed,A suppression is written; no further contact

@@ -1,0 +1,7 @@
+class,sort_order,label,due_days,meaning
+safety,1,Safety,0,"Same day; event pathway, not the cadence"
+acute,2,Acute event,3,Due in 3 days
+unctl,3,Uncontrolled,7,Due in 7 days
+barrier,4,Barrier,7,Due in 7 days
+gap,5,Verified gap,30,Due in 30 days
+goal,6,Patient goal,14,Due in 14 days (not set in the rulebook; working default)

@@ -1,0 +1,13 @@
+event_type,written_by,when,kit_table
+COHORT,Builder,A cohort is saved or an nGQL query is loaded,"campaign (rules_json, where_sql)"
+COHORT_MEMBER,Cohort engine,"Nightly, with the stable-hash holdout",campaign_member
+MEMBER_FEATURE,Nightly scan,Features computed from claims and labs,member
+MemberRisk,Care intelligence,"R, tier and safety flag","member.r_total, tier, alert, contact_priority"
+MEMBER_SIGNAL,Care intelligence,"A trigger fired, cannot tell or not fired, with evidence",member_signal
+NUDGE_PLAN,Planner,Needs classed and ordered; NBA set,"care_plan_need, action (care_plan)"
+CLINICAL_ALERT,Planner,Alert colour and contact priority,"member.alert, worklist"
+CONSENT_EVENT,Portal,Consent logged or declined,"member.consent, outcome.consent"
+CASE_ACTION,Portal,"An action agreed, done or declined on the call","outcome, action"
+MEMBER_ASSERTION,Portal,What the member said that differs from the record,outcome.notes (post-demo: member_assertion table)
+DISPOSITION_EVENT,Portal,The outcome of each need on the call,outcome
+CARE_GAP_EVENT,Care intelligence,A gap moves state; Closed only when the claim arrives,care_plan_need.gap_state

@@ -1,0 +1,26 @@
+{
+  "name": "chronic-care-loop-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chronic Care Command Centre demo: Chronic Care Studio + Care Coordinator Portal on a shared Express/SQLite backend",
+  "workspaces": ["backend", "apps/chronic-care-studio", "apps/care-coordinator-portal"],
+  "engines": { "node": ">=18.17" },
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "setup:from-excel": "node scripts/setup.js --from-excel",
+    "reset": "node scripts/reset.js",
+    "dev": "node scripts/dev.js",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:studio": "npm run start --workspace apps/chronic-care-studio",
+    "dev:portal": "npm run start --workspace apps/care-coordinator-portal",
+    "build": "npm run build --workspace apps/chronic-care-studio && npm run build --workspace apps/care-coordinator-portal",
+    "start": "node scripts/dev.js --prod",
+    "test": "npm test --workspace backend",
+    "intelligence:run": "node backend/rule-engine/run.js",
+    "docs:erd": "node scripts/erd.js",
+    "docs:api": "node scripts/gen_api_docs.js",
+    "docs:demo": "node scripts/gen_demo_doc.js",
+    "docs:lineage": "node scripts/gen_lineage.js",
+    "package": "node scripts/package.js"
+  }
+}

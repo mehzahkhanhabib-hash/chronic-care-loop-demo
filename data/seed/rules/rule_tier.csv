@@ -1,0 +1,5 @@
+tier,label,r_min,r_max,campaign_does,cadence,cadence_days
+1,Low,0,3,"Routine monitoring, mostly digital nudges","Baseline, M3, M6, M12","0,90,180,365"
+2,Moderate,4,7,Scheduled outreach and risk-factor management,"Baseline, W6, M3, M5, M7, M9, M12","0,42,90,150,210,270,365"
+3,High,8,12,Active case management and clinical coordination,"Baseline, W2, M1, M2, M3, M4, M6, M9, M12","0,14,30,60,90,120,180,270,365"
+4,Very high,13,23,Intensive follow-up and priority clinical coordination,"Weekly, then every 2–4 weeks","0,7,14,21,28,56,84,112,180"

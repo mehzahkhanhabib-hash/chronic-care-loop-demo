@@ -1,0 +1,11 @@
+export const fmt = n => (n === null || n === undefined || Number.isNaN(Number(n))) ? '—' : Math.round(Number(n)).toLocaleString('en-US');
+export const fmt1 = n => (n === null || n === undefined) ? '—' : Number(n).toFixed(1);
+export const pct = (a, b) => b ? Math.round(100 * a / b) + '%' : '0%';
+export const money = n => (n === null || n === undefined) ? '—' : 'AED ' + Math.round(Number(n)).toLocaleString('en-US');
+export const ALERT_TEXT = { RED: 'Urgent · same day', AMBER: 'Priority · within 72 h', YELLOW: 'Routine · next touchpoint', GREEN: 'At target · routine cadence' };
+export const SLA_TEXT = { P1: 'P1 · same day', P2: 'P2 · next working day', P3: 'P3 · within 3 working days', P4: 'P4 · digital nudge' };
+export const tierClass = t => 't' + (t || 1);
+export const initialsOf = s => (s || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+export const dateShort = iso => iso ? new Date(iso.replace(' ', 'T')).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '—';
+export const dateTime = iso => iso ? iso.replace('T', ' ').slice(0, 16) : '—';
+export const sentence = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';

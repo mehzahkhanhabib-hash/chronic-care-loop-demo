@@ -1,0 +1,4 @@
+state,meaning,what_happens,guardrail
+fired,The condition is met on the raw data,Goes to the planner: becomes a care-plan need,G1
+cannot_tell,A value the rule needs is missing,"Becomes a question for the nurse, asked once",G8
+not_fired,The condition is not met,Nothing,

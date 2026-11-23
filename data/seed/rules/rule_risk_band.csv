@@ -1,0 +1,33 @@
+component,input,band,points,cap,extract_column
+C,HbA1c (T2D only),< 7,0,5,HbA1c_score
+C,HbA1c (T2D only),7–7.9,1,5,HbA1c_score
+C,HbA1c (T2D only),8–8.9,2,5,HbA1c_score
+C,HbA1c (T2D only),9–9.9,3,5,HbA1c_score
+C,HbA1c (T2D only),≥ 10,4,5,HbA1c_score
+C,HTN diagnosis,yes,2,5,Clinical_score
+C,Hypoglycaemia in 12 months,each,2,5,Clinical_score
+C,DKA in 12 months,each,3,5,Clinical_score
+M,Dyslipidaemia,yes,1,6,Comorbid_complication_score
+M,BMI ≥ 30,yes,1,6,Comorbid_complication_score
+M,Smoking,yes,1,6,Comorbid_complication_score
+M,CAD/MI,yes,3,6,Comorbid_complication_score
+M,Stroke/TIA,yes,3,6,Comorbid_complication_score
+M,Heart failure,yes,3,6,Comorbid_complication_score
+M,PAD,yes,3,6,Comorbid_complication_score
+M,Retinopathy,yes,2,6,Comorbid_complication_score
+M,Neuropathy,yes,1,6,Comorbid_complication_score
+M,Foot ulcer,yes,4,6,Comorbid_complication_score
+M,Major amputation,yes,4,6,Comorbid_complication_score
+K,eGFR,≥ 60,0,5,Kidney_score
+K,eGFR,45–59,1,5,Kidney_score
+K,eGFR,30–44,2,5,Kidney_score
+K,eGFR,15–29,3,5,Kidney_score
+K,eGFR,< 15 or dialysis,4,5,Kidney_score
+K,UACR,30–299,1,5,Kidney_score
+K,UACR,≥ 300,2,5,Kidney_score
+K,CKD stage (both labs missing: provisional),stage 3a / 3b / 4 / 5,1 / 2 / 3 / 4,5,Kidney_score
+U,ED visits not admitted,0–3,0–3,5,Utilization_score
+U,Unplanned admissions,1,3,5,Utilization_score
+U,Unplanned admissions,≥ 2,4,5,Utilization_score
+A,Men,< 40 / 40–59 / ≥ 60,0 / 1 / 2,2,Age_sex_score
+A,Women,< 45 / 45–69 / ≥ 70,0 / 1 / 2,2,Age_sex_score

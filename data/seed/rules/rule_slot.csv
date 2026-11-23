@@ -1,0 +1,5 @@
+slot,from_rank,to_rank,meaning
+CURRENT,1,3,Active needs. A nurse never carries more than three (tree step I). Each has one action.
+NEXT,4,6,Due after the first three close; promoted when one closes.
+FUTURE,7,99,Scheduled on the cadence.
+CLOSED,,,Done or declined; kept for the record (G9).

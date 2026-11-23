@@ -1,0 +1,2 @@
+flag,raised_by,extract_columns,effect,event_pathway,note
+Priority clinical review,A coded DKA or hypoglycaemia event,"flag_dka_l12m, flag_dm_hypoglycaemia_l12m, flag_dm_hyperglycaemic_crisis_l12m, Priority_clinical_review",Raises a Priority clinical review whatever the tier; RED alert; first in the queue,"Clinician review the same day; check-in at D3, D7, D14; then the Tier 4 cadence","On the event pathway, not the cadence (rulebook §2, §6.3)"

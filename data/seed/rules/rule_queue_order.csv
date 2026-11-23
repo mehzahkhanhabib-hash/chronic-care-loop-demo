@@ -1,0 +1,5 @@
+rank,sort_key,direction,meaning
+1,safety_or_red,desc,Safety flag or a RED alert first
+2,tier,desc,Tier 4 down to 1
+3,campaign_priority,asc,Campaign priority (1 first)
+4,hours_past_sla,desc,Most overdue against the contact SLA

@@ -1,0 +1,6 @@
+step_no,step,owner_component,what_happens,data_written
+1,Cohort,Cohort & Campaign Builder,Selects members on raw inputs only; hands off a campaign,"COHORT, COHORT_MEMBER (holdout by stable hash)"
+2,Intelligence,Care intelligence,Scores R = C+M+K+U+A nightly; triggers fire with evidence; the planner ranks needs and actions; scripts are filled,"MEMBER_FEATURE, MemberRisk, MEMBER_SIGNAL, NUDGE_PLAN, CLINICAL_ALERT"
+3,Portal,Care Coordinator Portal,"The nurse sees the worklist, Member 360 (after consent) and the care plan","CONSENT_EVENT, CASE_ACTION"
+4,Write-back,Portal → care intelligence,Every outcome is recorded as an event,"DISPOSITION_EVENT, MEMBER_ASSERTION, CARE_GAP_EVENT"
+5,Next iteration,Care intelligence,"Write-backs change features, triggers, rank and the next due date; closed needs drop out",Next nightly run

@@ -1,0 +1,5 @@
+colour,sort_order,criteria,response
+RED,1,"Safety flag, BP ≥ 180/110, eGFR < 15, a hypoglycaemia event, or red-flag symptoms on the call",Same-day clinician; the script stops
+AMBER,2,"Post-discharge, HbA1c ≥ 9, BP ≥ 160/100, eGFR falling, PDC < 50%",Clinician review within 72 h
+YELLOW,3,Off target but below AMBER; an overdue test or screening,Next touchpoint
+GREEN,4,"At target, nothing open",Routine cadence

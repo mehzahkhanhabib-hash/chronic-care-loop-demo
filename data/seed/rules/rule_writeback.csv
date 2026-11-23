@@ -1,0 +1,10 @@
+outcome,need_status,need_slot,action_status,gap_state,hold_days,max_attempts,retry_after_days,promote_next,new_calendar_item,guardrail
+done,done,CLOSED,done,Reported,,,,1,"Next need, due by its class",G7
+declined,declined,CLOSED,declined,,90,,,1,Re-offer at day 90,G4
+not_reached,,,,,,3,1,0,Retry the next working day; P1 escalates to the lead after 3 attempts,G3
+carried,open,CURRENT,open,,,,,0,None: stays CURRENT with its due date,G9
+agreed,open,,open,Scheduled,,,,0,None: the action is agreed with the member,
+member_assertion,,,,Verified,,,,0,Matched again tonight; depends on whether the trigger still fires,G8
+consent_granted,,,,,,,,0,Member 360 and the care plan unlock,G2
+consent_declined,,,,,,,,0,Suppression written; no further contact,G2
+claim_evidence,done,CLOSED,done,Closed,,,,1,Trigger no longer fires on the next extract,G1

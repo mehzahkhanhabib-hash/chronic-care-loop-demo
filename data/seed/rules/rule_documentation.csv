@@ -1,0 +1,7 @@
+item_no,item,kit_column
+1,Purpose and finding,outcome.notes; care_plan_need.evidence
+2,"Nurse, patient and professional actions","action.title, action.owner_role"
+3,Owner and due date,"action.assignee, action.due_date"
+4,Alert colour,member.alert
+5,Next contact,v_member_summary.next_touchpoint
+6,CURRENT / NEXT / FUTURE,care_plan_need.slot
