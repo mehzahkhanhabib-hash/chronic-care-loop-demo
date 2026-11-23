@@ -50,6 +50,8 @@ Starts the backend on port 4000 and both apps (webpack dev servers) on 3000 and 
 - Chronic Care Studio → http://localhost:3000
 - Care Coordinator Portal → http://localhost:3001
 
+When the Studio opens it shows a **How it works** guide to the three layers (cohort builder → care intelligence → care portal); click a layer to go there, or reopen the guide with the **?** button at the top.
+
 Stop everything with `Ctrl+C`.
 
 ### Nurse accounts (local demo login, PIN `1234`)

@@ -24,6 +24,7 @@ const post = (p, b) => fetch(API + p, { method: 'POST', headers: { 'content-type
   await shot('portal-11-x206-member360', PORTAL + '/#/member/' + M + '/360', true);
   await shot('portal-12-x206-timeline', PORTAL + '/#/member/' + M + '/timeline');
   await shot('portal-13-tasks-after', PORTAL + '/#/tasks');
+  await page.goto(STUDIO + '/'); await page.evaluate(() => sessionStorage.setItem('ccl.studio.guide', 'seen'));
   await shot('studio-04-x206-after-portal', STUDIO + '/intelligence/' + M);
   const after = await (await fetch(API + `/members/${M}/care-plan`)).json();
   console.log('care plan after:', after.needs.map(n => `${n.trigger_code}:${n.slot}/${n.gap_state}`).join(' ')); console.log('console errors:', errors.slice(0, 8));

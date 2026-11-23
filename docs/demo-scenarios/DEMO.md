@@ -287,6 +287,7 @@ High risk (tier 3) with HbA1c above goal, uncontrolled blood pressure, a kidney 
 
 | file | what it shows |
 |---|---|
+| `studio-00-how-it-works.png` | The How it works guide the Studio opens with: the three layers (cohort builder → care intelligence → care portal) with live counts |
 | `studio-01-builder.png` | Studio screen 1 · cohort & campaign builder with live counts from the longitudinal table |
 | `studio-02-intelligence.png` | Studio screen 2 · programme KPIs and the ranked member list |
 | `studio-02-intelligence-x2063.png` | Screen 2 for demo member 1 (x2063): R 15/23, tier 4, AMBER P2, fired triggers, care plan |

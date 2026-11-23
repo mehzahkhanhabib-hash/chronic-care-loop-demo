@@ -6,6 +6,7 @@ import Logo from './components/Logo';
 import Builder from './screens/Builder';
 import Intelligence from './screens/Intelligence';
 import Portal from './screens/Portal';
+import HowItWorks from './components/HowItWorks';
 
 const Arrow = () => <span className="ws-arrow" aria-hidden="true"><svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5.25 3.5L8.75 7l-3.5 3.5" /></svg></span>;
 
@@ -13,6 +14,9 @@ export default function App() {
   const [health, setHealth] = useState(null);
   const [counts, setCounts] = useState({ cohorts: null, members: null, today: null, kpis: null });
   const loc = useLocation();
+  // How it works: opens when the Studio starts (once per browser session), and from the ? button
+  const [guide, setGuide] = useState(() => { try { return sessionStorage.getItem('ccl.studio.guide') !== 'seen'; } catch (e) { return true; } });
+  const closeGuide = () => { setGuide(false); try { sessionStorage.setItem('ccl.studio.guide', 'seen'); } catch (e) { /* ignore */ } };
   const refresh = () => {
     api.get('/health').then(setHealth).catch(() => setHealth({ ok: false }));
     api.get('/studio/scope').then(sc => { const q = sc.scope ? 'scope=active' : '';
@@ -42,6 +46,7 @@ export default function App() {
               </div>
             </nav>
             <span className="wb" title={health && health.ok ? `Run ${health.latest_run?.run_id ?? '—'} · as-of ${health.as_of} · today ${health.run_date} · rules ${health.rule_version}` : 'Backend status'}>↩ {offline ? 'backend offline · npm run dev' : counts.kpis ? `${counts.kpis.reported_not_in_claims} reported · ${counts.kpis.consented} consented` : 'write-back loop'}</span>
+            <button className="hiw-help" onClick={() => setGuide(true)} aria-label="How it works" title="How it works">?</button>
             <div className="user"><span className="avatar">{role.ini}</span><div className="rn"><div className="nm">{role.name}</div><div className="rl">{role.team}</div></div></div>
           </div>
         </header>
@@ -56,6 +61,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/builder" replace />} />
           </Routes>
         </main>
+        <HowItWorks open={guide} onClose={closeGuide} counts={counts} />
       </div>
     </ToastProvider>
   );
