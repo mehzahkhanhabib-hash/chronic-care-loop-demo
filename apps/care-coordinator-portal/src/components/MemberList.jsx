@@ -9,20 +9,20 @@ import { ALERT_TAG, daysFrom, genderWord, titleCase } from '../util.js';
 const LISTS = [['today', 'Today'], ['queued', 'Queued'], ['scheduled', 'Scheduled'], ['nudge', 'Nudges']];
 const short = (iso, today) => { if (!iso) return '—'; const d = daysFrom(iso, today); return d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : d > 1 ? `In ${d} d` : `${-d} d late`; };
 
-function Card({ x, sel, today, onPick }) {
+function Card({ x, sel, today, onPick, scopedList }) {
   const [call] = useCall(x.member_id);
   const late = x.due_by && x.due_by < today;
   return <button className="mc" onClick={() => onPick(x.member_id)} aria-current={sel === x.member_id}>
     <Ring v={x.total_risk_score} colour={x.alert_colour} size={40} />
     <span className="who"><span className="nm">{x.display_name}</span><span className="dm">{x.age}, {genderWord(x.gender)}, {titleCase(x.nationality)} · {x.member_id}</span>
       <span className="tg">{call.saved ? <Tag cls="t-ok">Outcome saved</Tag> : call.st === 'live' ? <Tag cls="t-ok">On call</Tag> : null}<Tag cls={ALERT_TAG[x.alert_colour] || 't-neu'} title={x.current_needs || ''}>{(x.action_title || '').replace(/^P\d call: /, '')}</Tag>
-        {x.consent_status === 'granted' ? <Tag cls="t-ok">Consent on file</Tag> : x.campaign_name ? <Tag cls="t-acc" title={`Campaign ${x.campaign_id}`}>{x.campaign_name}</Tag> : null}</span></span>
+        {x.consent_status === 'granted' ? <Tag cls="t-ok">Consent on file</Tag> : x.campaign_name ? <Tag cls="t-acc" title={`Campaign ${x.campaign_id}`}>{x.campaign_name}</Tag> : null}{scopedList && x.nurse_name ? <Tag cls="t-neu" title="Assigned nurse">{x.nurse_name.split(' ')[0]}</Tag> : null}</span></span>
     <span className={'wt' + (late ? ' late' : '')}><b>{short(x.due_by, today)}</b>{x.contact_priority}{x.safety_flag ? ' · ⚑' : ''}</span>
   </button>;
 }
 
 /** "Flagged members": the nurse's worklist in rulebook order (worklist ⋈ member_risk_result ⋈ member_alert ⋈ action). */
-export default function MemberList({ wl, sel, mode }) {
+export default function MemberList({ wl, sel, mode, scope, scoped, setScoped }) {
   const nav = useNavigate(); const { today } = useApp();
   const [status, setStatus] = useState('today'); const [q, setQ] = useState(''); const [touched, setTouched] = useState(false);
   const all = wl.data ? wl.data.items : [];
@@ -37,7 +37,12 @@ export default function MemberList({ wl, sel, mode }) {
     <div className="chips" role="group" aria-label="Filter by list">
       {LISTS.map(([k, l]) => <button key={k} className="chip" aria-pressed={status === k} onClick={() => { setStatus(k); setTouched(true); }}>{l} <span className="c">{counts[k] || 0}</span></button>)}
     </div>
+    {scope ? <div className="scope" role="group" aria-label="Members from the Care studio">
+      <div className="scope-t"><b>From Care studio</b> · {scope.kind === 'campaign' ? 'campaign' : 'cohort'} {scope.id}</div>
+      <div className="scope-l" title={scope.label}>{scope.label} · {scope.members} members</div>
+      <div className="chips"><button className="chip" aria-pressed={scoped} onClick={() => setScoped(true)}>Cohort members <span className="c">{scoped ? all.length : '·'}</span></button><button className="chip" aria-pressed={!scoped} onClick={() => setScoped(false)}>My list</button></div>
+    </div> : null}
     <div className="cards">{wl.loading && !wl.data ? <div className="empty">Loading your queue…</div> : wl.error ? <div className="empty">Could not load the queue. {wl.error.message}</div>
-      : vis.length ? vis.map(x => <Card key={x.member_id} x={x} sel={sel} today={today} onPick={pick} />) : <div className="empty">{t ? 'No members match this search.' : 'Nothing waiting here.'}</div>}</div>
+      : vis.length ? vis.map(x => <Card key={x.member_id} x={x} sel={sel} today={today} onPick={pick} scopedList={scoped} />) : <div className="empty">{t ? 'No members match this search.' : scoped ? 'None of the cohort members are on this list.' : 'Nothing waiting here.'}</div>}</div>
   </aside>;
 }

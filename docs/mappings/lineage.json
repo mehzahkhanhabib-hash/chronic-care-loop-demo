@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T17:40:48.240Z",
+ "generated_at": "2026-11-23T18:11:47.581Z",
  "chain": "Frontend screen → UI element → API response field → table.column → source file or rule output",
  "api_fields": {
   "identity.display_name": "member_identifier_crosswalk.display_name (pseudonym)",

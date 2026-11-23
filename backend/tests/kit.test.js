@@ -78,6 +78,17 @@ test('views named by the Revised Member360/Longitudinal/CI workbook exist with t
   assert.ok(ccl.count('care_intelligence_need_v') > 0 && ccl.count('member_need') === ccl.count('care_need'));
   for (const v of ['member360_v', 'member360_claims_v', 'member360_labs_v']) assert.ok(claims.count(v) > 0);
 });
+test('studio scope: a handed-off cohort is what intelligence and the portal worklist show', () => {
+  const SC = require('../services/scope'); const I = require('../services/intelligence'); const P = require('../services/portal');
+  const s = SC.setScope(ccl, { cohort_id: 'COH-0101' }, 'test');
+  const n = ccl.get("SELECT count(*) AS n FROM cohort_member WHERE cohort_id = 'COH-0101'").n;
+  assert.equal(s.members, n);
+  assert.equal(I.members(ccl, { scope: 'active' }).count, n);
+  assert.equal(I.kpis(ccl, { scope: 'active' }).evaluated, n);
+  const wl = P.worklist(ccl, { scope: 'active' });
+  assert.ok(wl.items.every(i => SC.memberIds(ccl, s).includes(i.member_id)));
+  SC.setScope(ccl, {}); assert.equal(SC.getScope(ccl), null);
+});
 test('API answers the main reads', async () => {
   const { start } = require('../api/server');
   const srv = await start();

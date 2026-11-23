@@ -87,3 +87,18 @@ dl.kv dd{margin:0;font-weight:500;word-break:break-word}
 
 .task .tb small.tmeta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
 .side>.link{margin-top:-4px}
+
+/* Studio scope: the cohort handed off from the Care studio's cohort builder */
+.scope{margin:0 0 10px;padding:10px 12px;border-radius:var(--r-md);background:var(--navy-800,#0B2E57);color:#fff;display:flex;flex-direction:column;gap:6px}
+.scope-t{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--aqua-300,#9FD7E6)}
+.scope-t b{font-weight:700}
+.scope-l{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scope .chips{margin:2px 0 0}
+.scope .chip{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.scope .chip[aria-pressed=true]{background:#fff;color:var(--navy-800,#0B2E57);border-color:#fff}
+
+/* Care plan board: same card content as the Studio's care intelligence screen */
+.nd-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nd-m{flex-direction:row;flex-wrap:wrap;gap:4px 12px;color:var(--text-secondary)}
+.nd-l{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;padding-top:8px;border-top:1px dashed var(--border-default);color:var(--text-secondary)}
+.nd-l b{color:var(--accent);font-weight:700;white-space:nowrap}

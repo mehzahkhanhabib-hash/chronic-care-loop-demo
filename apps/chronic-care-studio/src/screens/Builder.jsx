@@ -656,7 +656,7 @@ function CampaignDialog({ ce, setCe, cohList, campN, running, onClose, onSaved, 
   const send = async () => {
     if (!okAll) return;
     setSaving(true);
-    try { const r = await api.post('/campaigns', payload('Live')); say(`${r.campaign.id} handed off · care intelligence is scoring these members now`); onSaved(); onClose(); await runNow(); }
+    try { const r = await api.post('/campaigns', payload('Live')); const sc = await api.post('/studio/scope', { campaign_id: r.campaign.id }); say(`${r.campaign.id} handed off · ${sc.scope ? sc.scope.members : ''} cohort members go to care intelligence and the care portal`); onSaved(); onClose(); await runNow(); }
     catch (e) { say('Hand-off failed: ' + e.message); } finally { setSaving(false); }
   };
   const setStatus = async status => { try { const r = await api.patch(`/campaigns/${ce.id}`, { status }); set({ status: r.campaign.status }); say(`${ce.id} is now ${status}`); onSaved(); } catch (e) { say('Could not change the status: ' + e.message); } };

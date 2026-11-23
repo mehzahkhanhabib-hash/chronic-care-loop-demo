@@ -22,8 +22,8 @@ Response (200):
     "trigger_variant": "rulebook",
     "run_date": "2026-11-20",
     "as_of_date": "2026-10-31",
-    "started_at": "2026-11-23 17:40:42",
-    "finished_at": "2026-11-23 17:40:43",
+    "started_at": "2026-11-23 18:11:36",
+    "finished_at": "2026-11-23 18:11:36",
     "members_evaluated": 250,
     "triggered_by": "setup",
     "stats_json": "{\"members\":250,\"fired\":798,\"cannot_tell\":183,\"needs_opened\":748,\"needs_closed_in_claims\":0,\"actions\":771,\"matches_ext…"
@@ -265,6 +265,7 @@ Response (200):
 {
   "run_id": 1,
   "count": 2,
+  "scope": null,
   "members": [
     {
       "member_id": "x465",
@@ -508,7 +509,7 @@ Response (200):
     "extract_total_risk_score": 12,
     "extract_risk_tier": "2. High",
     "matches_extract": 1,
-    "evaluated_at": "2026-11-23 17:40:42",
+    "evaluated_at": "2026-11-23 18:11:36",
     "components": [
       {
         "component": "C",
@@ -600,7 +601,7 @@ Response (200):
   "assignment": {
     "member_id": "x206",
     "nurse_id": "U-0150",
-    "assigned_at": "2026-11-23 17:40:42",
+    "assigned_at": "2026-11-23 18:11:36",
     "assigned_by": "engine",
     "nurse_name": "Omar Khalid"
   },
@@ -1477,7 +1478,7 @@ Response (200):
   "extract_total_risk_score": 12,
   "extract_risk_tier": "2. High",
   "matches_extract": 1,
-  "evaluated_at": "2026-11-23 17:40:42",
+  "evaluated_at": "2026-11-23 18:11:36",
   "components": [
     {
       "component": "C",
@@ -1591,7 +1592,7 @@ Response (200):
     "next_best_action": "Same-day clinician review, hypo plan, glucagon check",
     "action_owner": "Doctor",
     "done_when": "Review note and medicine change logged",
-    "evaluated_at": "2026-11-23 17:40:42",
+    "evaluated_at": "2026-11-23 18:11:36",
     "trigger_name": "Hypoglycaemia",
     "pathway": "T2D",
     "need_class": "safety",
@@ -1628,7 +1629,7 @@ Response (200):
     "next_best_action": "Stop the script and escalate the same day",
     "action_owner": "Nurse → doctor",
     "done_when": "Escalation closed",
-    "evaluated_at": "2026-11-23 17:40:42",
+    "evaluated_at": "2026-11-23 18:11:36",
     "trigger_name": "BP urgent",
     "pathway": "HTN",
     "need_class": "safety",
@@ -1685,8 +1686,8 @@ Response (200):
     "status": "active",
     "created_run_id": 1,
     "updated_run_id": 1,
-    "created_at": "2026-11-23 17:40:42",
-    "updated_at": "2026-11-23 17:40:42"
+    "created_at": "2026-11-23 18:11:36",
+    "updated_at": "2026-11-23 18:11:36"
   },
   "needs": [
     {
@@ -1773,7 +1774,7 @@ Response (200):
     "parent_action_id": null,
     "source": "engine",
     "run_id": 1,
-    "created_at": "2026-11-23 17:40:42",
+    "created_at": "2026-11-23 18:11:36",
     "closed_at": null,
     "came_from": null,
     "because_outcome": null,
@@ -1795,7 +1796,7 @@ Response (200):
     "parent_action_id": null,
     "source": "engine",
     "run_id": 1,
-    "created_at": "2026-11-23 17:40:42",
+    "created_at": "2026-11-23 18:11:36",
     "closed_at": null,
     "came_from": null,
     "because_outcome": null,
@@ -1812,14 +1813,14 @@ Response (200):
 ```json
 [
   {
-    "at": "2026-11-23 17:40:42",
+    "at": "2026-11-23 18:11:36",
     "type": "gap",
     "text": "Trig8: new → Potential (engine)",
     "by": "engine",
     "ref": 96
   },
   {
-    "at": "2026-11-23 17:40:42",
+    "at": "2026-11-23 18:11:36",
     "type": "gap",
     "text": "Trig13: new → Potential (engine)",
     "by": "engine",
@@ -1989,6 +1990,7 @@ Response (200):
 {
   "run_id": 1,
   "count": 2,
+  "scope": null,
   "members": [
     {
       "member_id": "x465",
@@ -2067,7 +2069,7 @@ Response (200):
 ```
 
 ### `GET /intelligence/kpis`
-Programme KPIs
+Programme KPIs (add ?scope=active for the handed-off cohort only)
 
 Response (200):
 ```json
@@ -2075,6 +2077,7 @@ Response (200):
   "run_id": 1,
   "run_date": "2026-11-20",
   "rule_version": "DEMO-2026-11-20",
+  "scope": null,
   "members": 250,
   "evaluated": 250,
   "triggers_fired": 798,
@@ -2096,6 +2099,29 @@ Response (200):
 }
 ```
 
+## Studio · cohorts and campaigns
+
+### `GET /studio/scope`
+The cohort or campaign last handed off from the cohort builder (null when none). Intelligence and the portal follow it with ?scope=active
+
+Response (200):
+```json
+{
+  "scope": null
+}
+```
+
+### `POST /studio/scope`
+Set the scope to a campaign ({campaign_id}) or a cohort ({cohort_id}); {} clears it
+
+```json
+{
+  "campaign_id": "CMP-0101"
+}
+```
+
+## Care Intelligence
+
 ### `GET /intelligence/runs`
 Run history
 
@@ -2108,8 +2134,8 @@ Response (200):
     "trigger_variant": "rulebook",
     "run_date": "2026-11-20",
     "as_of_date": "2026-10-31",
-    "started_at": "2026-11-23 17:40:42",
-    "finished_at": "2026-11-23 17:40:43",
+    "started_at": "2026-11-23 18:11:36",
+    "finished_at": "2026-11-23 18:11:36",
     "members_evaluated": 250,
     "triggered_by": "setup",
     "stats_json": "{\"members\":250,\"fired\":798,\"cannot_tell\":183,\"needs_opened\":748,\"needs_closed_in_claims\":0,\"actions\":771,\"matches_ext…",
@@ -2158,7 +2184,7 @@ Response (200):
     "next_best_action": "Glycaemic treatment review",
     "action_owner": "Doctor",
     "done_when": "Goal, decision and next test date recorded",
-    "evaluated_at": "2026-11-23 17:40:42"
+    "evaluated_at": "2026-11-23 18:11:36"
   },
   {
     "evaluation_id": 2362,
@@ -2178,7 +2204,7 @@ Response (200):
     "next_best_action": "Glycaemic treatment review",
     "action_owner": "Doctor",
     "done_when": "Goal, decision and next test date recorded",
-    "evaluated_at": "2026-11-23 17:40:42"
+    "evaluated_at": "2026-11-23 18:11:36"
   }
 ]
 ```
@@ -2612,6 +2638,7 @@ Response (200):
 {
   "run_id": 1,
   "count": 25,
+  "scope": null,
   "items": [
     {
       "run_id": 1,
@@ -2656,7 +2683,7 @@ Response (200):
     "status": "open",
     "completed_at": null,
     "booking_date": null,
-    "created_at": "2026-11-23 17:40:42",
+    "created_at": "2026-11-23 18:11:36",
     "display_name": "Yousef Al Kaabi",
     "action_kind": "call",
     "need_id": null,
@@ -2679,7 +2706,7 @@ Response (200):
     "status": "open",
     "completed_at": null,
     "booking_date": null,
-    "created_at": "2026-11-23 17:40:42",
+    "created_at": "2026-11-23 18:11:36",
     "display_name": "Mohammed Al Mazrouei",
     "action_kind": "call",
     "need_id": null,

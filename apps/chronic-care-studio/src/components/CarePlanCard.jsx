@@ -3,7 +3,7 @@ import { Loading, ErrorBox, Empty } from './ui';
 import { dateShort } from '../lib/format';
 
 /** Care plan card with two views behind a segmented toggle.
- *  “In order” (default) is the Studio_7 numbered list: number, class pill, next best action, why · rule ref, status; the top three (CURRENT) go to the nurse.
+ *  “Current · Next · Future” (default) is the board below; “In order” is the Studio_7 numbered list: number, class pill, next best action, why · rule ref, status; the top three (CURRENT) go to the nurse.
  *  “Current · Next · Future” is the Care Coordinator Portal's Care plan tab (CCC Rulebook §2–§5):
  *  Current / Next / Future columns of needs (class pill, due, next best action, owner, done-when, rule ref, action line),
  *  closed pills, the care-gap lifecycle Potential → Verified → Scheduled → Reported → Closed, and the tier cadence strip.
@@ -18,10 +18,10 @@ const orderStatus = n => (n.status === 'declined' ? ['Declined · again in 90 d'
   : n.status === 'done' ? (n.gap_state === 'Closed' ? ['✓ Closed in claims', '#0A6F96'] : ['↩ Done · confirm in claims', '#0A6F96'])
   : n.status !== 'open' ? [n.status, '#8A5A00']
   : n.slot === 'CURRENT' ? ['For nurse', '#566A74'] : ['Waiting', '#566A74']);
-const VIEWS = [['order', 'In order'], ['slots', 'Current · Next · Future']];
+const VIEWS = [['slots', 'Current · Next · Future'], ['order', 'In order']];
 
 export default function CarePlanCard({ cp, risk, runDate, title = 'Care plan', dense }) {
-  const [view, setView] = useState('order');
+  const [view, setView] = useState('slots');
   if (cp.loading) return <section className="card cpv"><Loading what="Loading the care plan" /></section>;
   if (cp.error) return <section className="card cpv"><ErrorBox error={cp.error} retry={cp.reload} what="the care plan" /></section>;
   const needs = cp.data ? cp.data.needs : [];

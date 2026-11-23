@@ -1,8 +1,12 @@
 /** Portal reads: worklist per nurse, tasks, analytics. Writes live in rule-engine/writeback.js. */
 const I = require('./intelligence');
-function worklist(db, { nurse_id, status } = {}) {
+const SC = require('./scope');
+function worklist(db, query = {}) {
+  const { nurse_id, status } = query;
   const run = I.latestRun(db).run_id;
   const w = ['w.run_id = ?'], p = [run];
+  const scope = SC.resolve(db, query);
+  if (scope) w.push(`w.member_id IN (${scope.sqlList})`);
   if (nurse_id) { w.push('w.nurse_id = ?'); p.push(nurse_id); }
   if (status) { w.push('w.list_status = ?'); p.push(status); }
   const rows = db.all(`SELECT w.*, x.display_name, x.initials, l."AGE" AS age, l."GENDER" AS gender, l."NATIONALITY" AS nationality, l.policy_type AS plan, r.total_risk_score, r.tier_label, r.pathway, u.name AS nurse_name, a.title AS action_title, a.kind AS action_kind, a.attempt, a.status AS action_status, c.name AS campaign_name,
@@ -15,7 +19,7 @@ function worklist(db, { nurse_id, status } = {}) {
     FROM worklist w JOIN member_identifier_crosswalk x ON x.member_id = w.member_id JOIN member_longitudinal l ON l.mask_id = w.member_id JOIN member_risk_result r ON r.member_id = w.member_id AND r.run_id = w.run_id
     JOIN member_alert al ON al.member_id = w.member_id AND al.run_id = w.run_id LEFT JOIN nurse_user u ON u.user_id = w.nurse_id LEFT JOIN action a ON a.action_id = w.action_id LEFT JOIN campaign c ON c.campaign_id = w.campaign_id
     WHERE ${w.join(' AND ')} ORDER BY w.nurse_rank`, p);
-  return { run_id: run, count: rows.length, items: rows.map(r => ({ ...r, consent_status: r.consent_status || 'pending' })) };
+  return { run_id: run, count: rows.length, scope: scope ? { kind: scope.kind, id: scope.id, label: scope.label, members: scope.ids.length } : null, items: rows.map(r => ({ ...r, consent_status: r.consent_status || 'pending' })) };
 }
 function tasks(db, { nurse_id, status, member_id, kind } = {}) {
   const w = ['1=1'], p = [];

@@ -32,9 +32,13 @@ export default function App() {
   const today = health.data ? health.data.run_date : '2026-11-20';
   // Embedded in the Care studio (screen 3): sign in as the nurse the member is assigned to, so the frame opens straight on the member.
   useEffect(() => { if (!embedded || user) { setAutoTried(true); return; } (async () => {
-    try { let uname = 'omar'; const mm = loc.pathname.match(/^\/member\/([^/]+)/);
-      if (mm) { const d = await api.get(`/members/${mm[1]}`); const us = await api.get('/users'); const u = us.find(x => d.assignment && x.user_id === d.assignment.nurse_id); if (u) uname = u.username; }
+    try { let uname = new URLSearchParams(loc.search).get('as') || 'omar'; const mm = loc.pathname.match(/^\/member\/([^/]+)/);
+      if (mm && !new URLSearchParams(loc.search).get('as')) { const d = await api.get(`/members/${mm[1]}`); const us = await api.get('/users'); const u = us.find(x => d.assignment && x.user_id === d.assignment.nurse_id); if (u) uname = u.username; }
       const r = await api.post('/auth/login', { username: uname, pin: '1234' }); setUser(r.user); } catch (e) { /* fall back to the sign-in screen */ } finally { setAutoTried(true); } })(); }, []); // eslint-disable-line
+  // Embedded in the Care studio: the Studio's nurse picker passes ?as=<username>; switch to that nurse when it changes.
+  const asUser = new URLSearchParams(loc.search).get('as');
+  useEffect(() => { if (!embedded || !asUser || (user && user.username === asUser)) return;
+    api.post('/auth/login', { username: asUser, pin: '1234' }).then(r => setUser(r.user)).catch(() => {}); }, [asUser]); // eslint-disable-line
   const ctx = useMemo(() => ({ today, health: health.data, bump: () => setTick(t => t + 1), embedded }), [today, health.data]);
   if (!user && !autoTried) return <div className="app"><div className="pg"><Loading what="Opening the workstation" /></div></div>;
   if (!user && loc.pathname !== '/login') return <UserCtx.Provider value={{ user, setUser }}><Navigate to="/login" replace state={{ from: loc.pathname }} /></UserCtx.Provider>;

@@ -507,7 +507,8 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:36px;background
 
 /* embedded in the Care studio: the studio header already carries brand and user */
 .emb .brand,.emb .me{display:none}
-.emb .top{min-height:60px;padding-top:8px}
+.emb .top{display:none}   /* the Studio's own bar is the header when the portal is embedded on screen 3 */
+.emb .body{padding-top:12px}
 
 /* ───────── Timeline: care map + activity (Figma · Member Profile Timeline) ───────── */
 .cm .cmap{grid-template-columns:170px minmax(0,1fr);row-gap:0}

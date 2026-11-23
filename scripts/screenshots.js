@@ -11,12 +11,12 @@ const USER = { user_id: 'U-0150', username: 'omar', name: 'Omar Khalid', role: '
   const page = await ctx.newPage(); const errors = [];
   page.on('pageerror', e => errors.push(String(e))); page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   const shot = async (name, url, wait = 1500) => { await page.goto(url, { waitUntil: 'networkidle' }); await page.waitForTimeout(wait); await page.screenshot({ path: path.join(OUT, name + '.png'), fullPage: false }); console.log('✓', name); };
-  await page.goto(STUDIO + '/'); await page.evaluate(u => localStorage.setItem('ccl.user', JSON.stringify(u)), USER);
+  await page.goto(STUDIO + '/'); await page.evaluate(u => localStorage.setItem('ccl.portal.user', JSON.stringify(u)), USER);
   await shot('studio-01-builder', STUDIO + '/builder');
   await shot('studio-02-intelligence', STUDIO + '/intelligence');
   for (const m of ['x2063', 'x206']) await shot(`studio-02-intelligence-${m}`, STUDIO + '/intelligence/' + m, 2500);
   await shot('studio-03-portal', STUDIO + '/portal', 3000);
-  await page.goto(PORTAL + '/#/login'); await page.evaluate(u => localStorage.setItem('ccl.user', JSON.stringify(u)), USER);
+  await page.goto(PORTAL + '/#/login'); await page.evaluate(u => localStorage.setItem('ccl.portal.user', JSON.stringify(u)), USER);
   await shot('portal-01-login', PORTAL + '/#/login');
   await shot('portal-02-queue', PORTAL + '/#/');
   for (const m of ['x2063', 'x206']) { await shot(`portal-03-member-${m}`, PORTAL + '/#/member/' + m, 2500); }

@@ -15,6 +15,7 @@ const P = require('../services/portal');
 const C = require('../services/cohorts');
 const E = require('../rule-engine/engine');
 const W = require('../rule-engine/writeback');
+const SC = require('../services/scope');
 
 const PORT = Number(process.env.PORT || 4000);
 const app = express();
@@ -65,7 +66,10 @@ app.get('/api/members/:id/timeline', wrap(req => { member(req.params.id); return
 app.get('/api/members/:id/explain', wrap(req => { member(req.params.id); return E.preview(ccl, req.params.id); }));
 app.get('/api/intelligence/members', wrap(req => I.members(ccl, req.query)));
 app.get('/api/intelligence/programme', wrap(() => I.programme(ccl)));
-app.get('/api/intelligence/kpis', wrap(() => I.kpis(ccl)));
+app.get('/api/intelligence/kpis', wrap(req => I.kpis(ccl, req.query)));
+// Studio scope: the cohort / campaign last handed off from the cohort builder; intelligence and the portal follow it (?scope=active).
+app.get('/api/studio/scope', wrap(() => ({ scope: SC.getScope(ccl) })));
+app.post('/api/studio/scope', wrap(req => { const s = SC.setScope(ccl, req.body || {}, req.get('x-user')); audit(req, 'studio_scope', s ? `${s.kind} ${s.id} · ${s.members} members` : 'cleared'); return { scope: s }; }));
 app.get('/api/intelligence/runs', wrap(() => ccl.all('SELECT * FROM intelligence_run ORDER BY run_id DESC').map(r => ({ ...r, stats: JSON.parse(r.stats_json || '{}') }))));
 app.post('/api/intelligence/runs', wrap(req => { const r = E.run(ccl, { triggeredBy: req.get('x-user') || 'api', memberIds: req.body && req.body.member_ids }); return r; }));
 app.get('/api/intelligence/runs/:id', wrap(req => { const r = ccl.get('SELECT * FROM intelligence_run WHERE run_id = ?', [req.params.id]); return r && { ...r, stats: JSON.parse(r.stats_json || '{}'), tiers: ccl.all('SELECT tier, tier_label, count(*) AS n FROM member_risk_result WHERE run_id = ? GROUP BY tier ORDER BY tier DESC', [req.params.id]), alerts: ccl.all('SELECT alert_colour, contact_priority, count(*) AS n FROM member_alert WHERE run_id = ? GROUP BY 1, 2', [req.params.id]) }; }));

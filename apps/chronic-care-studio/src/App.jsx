@@ -15,12 +15,16 @@ export default function App() {
   const loc = useLocation();
   const refresh = () => {
     api.get('/health').then(setHealth).catch(() => setHealth({ ok: false }));
-    Promise.all([api.get('/cohorts'), api.get('/intelligence/kpis'), api.get('/portal/worklist?status=today')])
-      .then(([c, k, w]) => setCounts({ cohorts: c.cohorts.length, members: k.evaluated, today: w.count, kpis: k })).catch(() => {});
+    api.get('/studio/scope').then(sc => { const q = sc.scope ? 'scope=active' : '';
+      return Promise.all([api.get('/cohorts'), api.get('/intelligence/kpis' + (q ? '?' + q : '')), api.get('/portal/worklist?status=today' + (q ? '&' + q : ''))])
+        .then(([c, k, w]) => setCounts({ cohorts: c.cohorts.length, members: k.evaluated, today: w.count, kpis: k, scope: sc.scope })); }).catch(() => {});
   };
   useEffect(() => { refresh(); }, [loc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const f = () => refresh(); window.addEventListener('ccl:scope', f); return () => window.removeEventListener('ccl:scope', f); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [nurse, setNurse] = useState(null);   // screen 3: the nurse the embedded portal is signed in as
+  useEffect(() => { const f = e => setNurse(e.detail); window.addEventListener('ccl:nurse', f); return () => window.removeEventListener('ccl:nurse', f); }, []);
   const onPortal = loc.pathname.startsWith('/portal');
-  const role = onPortal ? { name: 'Nadia R.', team: 'Nurse · English, Hindi', ini: 'NR' } : loc.pathname.startsWith('/intelligence') ? { name: 'Dr. Rana K.', team: 'Clinical lead · DoH rules', ini: 'DR' } : { name: 'Layla M.', team: 'Population health', ini: 'LM' };
+  const role = onPortal ? (nurse ? { name: nurse.name, team: `${nurse.role} · ${nurse.languages.replace(',', ', ')}`, ini: nurse.name.split(' ').map(w => w[0]).join('').slice(0, 2) } : { name: 'Care team', team: 'Nurse workstation', ini: 'CT' }) : loc.pathname.startsWith('/intelligence') ? { name: 'Dr. Rana K.', team: 'Clinical lead · DoH rules', ini: 'DR' } : { name: 'Layla M.', team: 'Population health', ini: 'LM' };
   const offline = health && !health.ok;
   return (
     <ToastProvider>

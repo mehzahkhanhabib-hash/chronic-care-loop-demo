@@ -8,7 +8,7 @@ import { CLASS_LABEL, CLASS_TAG, GAP_STATES, GAP_TAG, addDays, relDay, fmtDay, f
 const LAST = { agreed: ['t-ok', 'Agreed'], done: ['t-acc', 'Done · reported'], declined: ['t-neu', 'Declined'], carried: ['t-info', 'Follow-up needed'] };
 /**
  * Care Gaps tab and Care plans detail (design: four tiles + "Open care gaps" table), followed by the care-plan board
- * (risk, cadence, CURRENT / NEXT / FUTURE with write-back, gap lifecycle, write-backs). Gated by consent (G2).
+ * (CURRENT / NEXT / FUTURE board first, as on the Studio's care intelligence screen, then tiles, open care gaps, risk, cadence, gap lifecycle, write-backs). Gated by consent (G2).
  * Reads /members/:id/care-plan, /risk, /tasks, /appointments · writes POST /portal/outcomes, /portal/appointments.
  */
 export default function CarePlanView({ memberId, consent, plan: planProp, onChanged, children }) {
@@ -43,23 +43,24 @@ export default function CarePlanView({ memberId, consent, plan: planProp, onChan
   const c = k => rows.filter(x => x.key === k).length;
 
   const bar = (k, v, mx) => <div className="rk" key={k}><span>{k}</span><i><b style={{ width: ((v || 0) / mx * 100) + '%' }} /></i><em>{v}</em></div>;
-  const need = (n, act) => <div className="nd" key={n.need_id}>
-    <div className="row" style={{ gap: 6 }}><Tag cls={CLASS_TAG[n.need_class]}>{CLASS_LABEL[n.need_class]}</Tag><Tag cls={GAP_TAG[n.gap_state]}>{n.gap_state}</Tag>{n.status !== 'open' ? <Tag cls={n.status === 'done' ? 't-ok' : 't-crit'}>{n.status}{n.hold_until ? ` · until ${fmtDay(n.hold_until)}` : ''}</Tag> : null}<span className="small muted" style={{ marginLeft: 'auto' }}>{relDay(n.due_date, today)}</span></div>
-    <b>{n.need} <span className="mono muted" style={{ fontWeight: 400 }}>{n.trigger_code}</span></b>
-    <div className="nd-ev">{n.evidence}</div>
-    <div className="nd-m"><span title="Next best action"><Icon name="right" />{n.next_best_action}</span><span title="Owner"><Icon name="user" />{n.action_owner}</span><span title="Done when"><Icon name="tick" />{n.done_when}</span></div>
-    {n.action ? <div className="nd-act">{n.action.kind === 'follow_up' ? 'Follow-up' : 'Action'} #{n.action.action_id} · {n.action.title} · {n.action.status} · due {fmtDay(n.action.due_date)}</div> : null}
-    <div className="lc-s">{GAP_STATES.map((g, i) => <span key={g} className={(GAP_STATES.indexOf(n.gap_state) >= i ? 'on' : '') + (n.gap_state === g ? ' cur' : '')}>{g}</span>)}</div>
+  const need = (n, act) => { const cur = n.slot === 'CURRENT'; const a = n.action;
+    return <div className="nd" key={n.need_id}>
+    <div className="nd-h"><Tag cls={CLASS_TAG[n.need_class]}>{n.class_label || CLASS_LABEL[n.need_class]}</Tag><span className="small muted mono">{relDay(n.due_date, today)}</span></div>
+    <b>{n.next_best_action}</b>
+    <div className="nd-m"><span title="Owner"><Icon name="user" />{n.action_owner}</span><span title="Done when"><Icon name="tick" />{n.done_when}</span><span className="mono" title={n.evidence}>{n.trigger_code} · {n.need}</span></div>
+    <div className="nd-l"><span>{cur ? (a ? `↳ ${a.kind === 'follow_up' ? a.title : 'Action · for the nurse'}${a.due_date ? ' · due ' + fmtDay(a.due_date) : ''}` : '↳ Action · for the nurse') : 'Becomes an action when it reaches Current'}</span><b>{cur ? (['Scheduled', 'Verified'].includes(n.gap_state) ? n.gap_state : 'Current') : n.slot === 'NEXT' ? 'Next' : 'Future'}</b></div>
     {act && n.status === 'open' ? <div className="row" style={{ gap: 6 }}><button className="btn btn-pri btn-xs" onClick={() => wb(n, 'done')} disabled={busy}>Done</button><button className="btn btn-line btn-xs" onClick={() => wb(n, 'agreed')} disabled={busy}>Agreed</button><button className="btn btn-sec btn-xs" onClick={() => wb(n, 'declined')} disabled={busy}>Declined</button><button className="btn btn-ghost btn-xs" onClick={() => wb(n, 'carried')} disabled={busy}>Carry</button><button className="btn btn-ghost btn-xs" onClick={() => setBookFor(bookFor === n.need_id ? null : n.need_id)}>Book</button></div> : null}
     {bookFor === n.need_id ? <div className="row" style={{ gap: 6 }}><input className="inp" style={{ height: 32, width: 160 }} type="date" value={bookDate} min={today} onChange={e => setBookDate(e.target.value)} aria-label="Booking date" /><button className="btn btn-acc btn-xs" disabled={!bookDate || busy} onClick={() => book(n)}>Save booking</button></div> : null}
-    {n.gap_events && n.gap_events.length > 1 ? <small className="muted">{n.gap_events.map(g => `${g.from_state || 'new'} → ${g.to_state} (${g.moved_by})`).join(' · ')}</small> : null}
-  </div>;
+  </div>; };
   const col = (s, L, act) => <div className="cn"><div className="cn-h"><b>{s}</b><span>{L.length}</span></div>{L.length ? L.map(n => need(n, act)) : <div className="muted small" style={{ padding: 12, textAlign: 'center' }}>—</div>}</div>;
   const tiers = [[0, 3, 1], [4, 7, 2], [8, 12, 3], [13, 23, 4]];
   const cad = (r.tier_rule && r.tier_rule.cadence_days ? String(r.tier_rule.cadence_days).split(',') : []).map(Number);
   const cadL = (r.tier_rule && r.tier_rule.cadence ? r.tier_rule.cadence.split(',').map(s => s.trim()) : []);
   const dispositions = P.needs.flatMap(n => n.last_outcome ? [{ ...n.last_outcome, need: n.need }] : []).sort((a, b) => (b.recorded_at || '').localeCompare(a.recorded_at || ''));
   return <div className="cpv">
+    <div className="panel"><div className="ph"><h2 style={{ fontSize: 15 }}>Care plan · Current · Next · Future</h2><span className="small muted mono">safety → acute → uncontrolled → barrier → gap → goal</span></div>
+      <div className="cns">{col('Current', P.current, true)}{col('Next', P.next)}{col('Future', P.future)}</div>
+      {P.closed.length ? <div className="row" style={{ marginTop: 12 }}>{P.closed.map(n => <Tag key={n.need_id} cls={n.status === 'done' ? 't-ok' : 't-crit'} title={`${n.need} · ${n.gap_state}`}>{n.status === 'done' ? '✓' : '✕'} {n.next_best_action}{n.gap_state === 'Reported' ? ' · awaiting claims' : n.hold_until ? ' · held until ' + fmtDay(n.hold_until) : ''}</Tag>)}</div> : null}</div>
     <div className="tiles"><Tile n={c('sched')} label="Scheduled" cls="crit" /><Tile n={c('raise')} label="Raise on next call" cls="warn" /><Tile n={c('not')} label="Not scheduled" cls="info" /><Tile n={c('closed') + c('rep')} label="Closed for now · reported" cls="neu" /></div>
     <div className="panel"><div className="ph"><h2 style={{ fontSize: 15 }}>Open care gaps</h2><span className="small muted">A gap closes only when claims or results prove the care happened</span></div>
       <div className="tblwrap"><table className="tbl"><thead><tr><th style={{ width: '36%' }}>Care gap</th><th>On the last call</th><th>Scheduling</th><th style={{ width: '30%' }}>What is planned</th></tr></thead><tbody>
@@ -74,9 +75,6 @@ export default function CarePlanView({ memberId, consent, plan: planProp, onChan
         <div className="cad">{cad.map((d, i) => <div key={i} className={'cdx' + (i === 0 ? ' on' : '')}><i /><b>{cadL[i] || `+${d}d`}</b><small>{fmtDay(addDays(today, d)).replace(/\s\d{4}$/, '')}</small></div>)}</div>
         <p className="muted small" style={{ margin: '12px 0 0' }}>Care plan {P.care_plan ? P.care_plan.care_plan_id : '—'} · {P.care_plan ? P.care_plan.cadence : ''} · updated by run {P.care_plan && P.care_plan.updated_run_id} <Source kind="rulebook" /></p></div>
     </div>
-    <div className="panel"><div className="ph"><h2 style={{ fontSize: 15 }}>Care plan</h2><span className="small muted">safety → acute → uncontrolled → barrier → gap → goal · CURRENT 1–3 · NEXT 4–6</span></div>
-      <div className="cns">{col('Current', P.current, true)}{col('Next', P.next)}{col('Future', P.future)}</div>
-      {P.closed.length ? <div className="row" style={{ marginTop: 12 }}>{P.closed.map(n => <Tag key={n.need_id} cls={n.status === 'done' ? 't-ok' : 't-crit'} title={`${n.gap_state}${n.hold_until ? ' · held until ' + n.hold_until : ''}`}>{n.status === 'done' ? '✓' : '✕'} {n.need} · {n.gap_state}</Tag>)}</div> : null}</div>
     <div className="panel"><div className="ph"><h2 style={{ fontSize: 15 }}>Care-gap lifecycle</h2><span className="small muted">Potential → Verified → Scheduled → Reported → Closed · only claims close a gap</span></div>
       {P.needs.filter(n => ['gap', 'unctl'].includes(n.need_class)).map(g => <div key={g.need_id} className="lc"><b>{g.need} <span className="mono muted" style={{ fontWeight: 400 }}>{g.trigger_code}</span></b><div className="lc-s">{GAP_STATES.map((s, i) => <span key={s} className={(GAP_STATES.indexOf(g.gap_state) >= i ? 'on' : '') + (g.gap_state === s ? ' cur' : '')}>{s}</span>)}</div>{g.assertions && g.assertions.length ? <small className="muted">Member said: {g.assertions.map(a => a.assertion_text).join(' · ')}</small> : null}</div>)}
       {!P.needs.some(n => ['gap', 'unctl'].includes(n.need_class)) ? <span className="muted small">None</span> : null}</div>

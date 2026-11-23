@@ -304,3 +304,6 @@ High risk (tier 3) with HbA1c above goal, uncontrolled blood pressure, a kidney 
 | `portal-12-x206-timeline.png` | Timeline of every persisted event |
 | `portal-13-tasks-after.png` | Tasks: the follow-ups the write-back rules created |
 | `portal-04-tasks.png`, `portal-05-care-plans.png`, `portal-06-analytics.png` | Tasks, care plans and shift analytics pages in the clean state |
+| `studio-05-cohort-handoff-intelligence.png` | After handing off a cohort (Diabetes · HbA1c 9 or more, 35 members) through a campaign: care intelligence lists and counts only those 35, with tier and priority on every row |
+| `studio-06-cohort-handoff-portal.png` | Screen 3 after the hand-off: one bar (signed-in nurse, cohort chip, list counts) and the embedded portal queue showing the same cohort members |
+| `portal-14-care-plan-current-next-future.png` | Portal care plan: the Current · Next · Future board first, same cards as care intelligence, with write-back buttons |

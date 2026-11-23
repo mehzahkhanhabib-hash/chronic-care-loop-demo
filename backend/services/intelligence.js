@@ -1,4 +1,5 @@
 /** Care Intelligence reads (data flow B): risk, evaluations, alerts, care plan, worklist. Everything comes from Layer D tables. */
+const SC = require('./scope');
 const latestRun = db => (db.get('SELECT * FROM intelligence_run WHERE finished_at IS NOT NULL ORDER BY run_id DESC LIMIT 1') || {});
 const name = (db, id) => db.get('SELECT display_name, initials FROM member_identifier_crosswalk WHERE member_id = ?', [id]) || {};
 
@@ -57,9 +58,12 @@ function longitudinal(db, id) {
   return { member_id: id, columns: fields.length, values: row, fields };
 }
 /** Screen-2 list: every member with latest risk, alert, fired triggers, campaign and worklist status. */
-function members(db, { q, tier, alert, campaign, limit = 500 } = {}) {
+function members(db, query = {}) {
+  const { q, tier, alert, campaign, limit = 500 } = query;
   const run = latestRun(db).run_id;
   const w = ['r.run_id = ?'], p = [run];
+  const scope = SC.resolve(db, query);
+  if (scope) w.push(`x.member_id IN (${scope.sqlList})`);
   if (q) { w.push('(x.member_id LIKE ? OR x.display_name LIKE ?)'); p.push(`%${q}%`, `%${q}%`); }
   if (tier) { w.push('r.tier = ?'); p.push(Number(tier)); }
   if (alert) { w.push('a.alert_colour = ?'); p.push(alert); }
@@ -73,7 +77,8 @@ function members(db, { q, tier, alert, campaign, limit = 500 } = {}) {
     FROM member_identifier_crosswalk x JOIN member_longitudinal l ON l.mask_id = x.member_id JOIN member_risk_result r ON r.member_id = x.member_id JOIN member_alert a ON a.member_id = x.member_id AND a.run_id = r.run_id
     LEFT JOIN campaign_member cm ON cm.member_id = x.member_id AND cm.run_id = r.run_id LEFT JOIN campaign c ON c.campaign_id = cm.campaign_id LEFT JOIN worklist w ON w.member_id = x.member_id AND w.run_id = r.run_id LEFT JOIN nurse_user u ON u.user_id = w.nurse_id
     WHERE ${w.join(' AND ')} ORDER BY (r.safety_flag = 1 OR a.alert_colour = 'RED') DESC, r.tier DESC, r.total_risk_score DESC, x.member_id LIMIT ?`, [...p, limit]);
-  return { run_id: run, count: rows.length, members: rows.map(r => ({ ...r, consent_status: r.consent_status || 'pending' })) };
+  return { run_id: run, count: rows.length, scope: scope ? { kind: scope.kind, id: scope.id, label: scope.label, members: scope.ids.length } : null,
+    members: rows.map(r => ({ ...r, consent_status: r.consent_status || 'pending', control_group: scope && scope.holdout.has(r.member_id) ? 1 : 0 })) };
 }
 function programme(db) {
   const run = latestRun(db).run_id;
@@ -87,13 +92,15 @@ function programme(db) {
     FROM rule_trigger t JOIN rule_need_class c ON c.class = t.class LEFT JOIN rule_action a ON a.trigger_code = t.trigger_code LEFT JOIN member_rule_evaluation e ON e.rule_id = t.trigger_code AND e.rule_type = 'trigger' AND e.run_id = ?
     GROUP BY t.trigger_code ORDER BY c.sort_order, t.sort_order`, [run]);
 }
-function kpis(db) {
+function kpis(db, query = {}) {
   const run = latestRun(db);
-  const one = sql => Object.values(db.get(sql))[0];
-  return { run_id: run.run_id, run_date: run.run_date, rule_version: run.rule_version, members: one('SELECT count(*) FROM member_longitudinal'), evaluated: one(`SELECT count(*) FROM member_risk_result WHERE run_id = ${run.run_id || 0}`),
-    triggers_fired: one(`SELECT count(*) FROM member_rule_evaluation WHERE run_id = ${run.run_id || 0} AND rule_type='trigger' AND evaluation_result='fired'`), cannot_tell: one(`SELECT count(*) FROM member_rule_evaluation WHERE run_id = ${run.run_id || 0} AND rule_type='trigger' AND evaluation_result='cannot_tell'`),
-    care_plans: one('SELECT count(*) FROM care_plan'), open_needs: one("SELECT count(*) FROM care_need WHERE status='open'"), current_needs: one("SELECT count(*) FROM care_need WHERE slot='CURRENT'"), current_without_action: one("SELECT count(*) FROM care_need n WHERE n.slot='CURRENT' AND n.status='open' AND NOT EXISTS (SELECT 1 FROM action a WHERE a.need_id=n.need_id AND a.status='open')"),
-    on_todays_list: one("SELECT count(*) FROM worklist WHERE list_status='today'"), queued: one("SELECT count(*) FROM worklist WHERE list_status='queued'"), nudges: one("SELECT count(*) FROM action WHERE status='open' AND kind='nudge'"), open_follow_ups: one("SELECT count(*) FROM action WHERE status='open' AND kind='follow_up'"), open_escalations: one("SELECT count(*) FROM action WHERE status='open' AND kind='escalation'"),
-    reported_not_in_claims: one("SELECT count(*) FROM care_need WHERE gap_state='Reported'"), closed_in_claims: one("SELECT count(*) FROM care_need WHERE gap_state='Closed'"), consented: one("SELECT count(DISTINCT member_id) FROM consent_event WHERE consent_status='granted'"), red: one(`SELECT count(*) FROM member_alert WHERE run_id = ${run.run_id || 0} AND alert_colour='RED'`), amber: one(`SELECT count(*) FROM member_alert WHERE run_id = ${run.run_id || 0} AND alert_colour='AMBER'`) };
+  const scope = SC.resolve(db, query);
+  const F = scope ? ` AND member_id IN (${scope.sqlList})` : '';
+  const one = sql => Object.values(db.get(sql.replace(/\{Fn\}/g, F.replace('member_id', 'n.member_id')).replace(/\{F\}/g, F)))[0];
+  return { run_id: run.run_id, run_date: run.run_date, rule_version: run.rule_version, scope: scope ? { kind: scope.kind, id: scope.id, label: scope.label, members: scope.ids.length } : null, members: scope ? scope.ids.length : one('SELECT count(*) FROM member_longitudinal'), evaluated: one(`SELECT count(*) FROM member_risk_result WHERE run_id = ${run.run_id || 0}{F}`),
+    triggers_fired: one(`SELECT count(*) FROM member_rule_evaluation WHERE run_id = ${run.run_id || 0} AND rule_type='trigger' AND evaluation_result='fired'{F}`), cannot_tell: one(`SELECT count(*) FROM member_rule_evaluation WHERE run_id = ${run.run_id || 0} AND rule_type='trigger' AND evaluation_result='cannot_tell'{F}`),
+    care_plans: one('SELECT count(*) FROM care_plan WHERE 1=1{F}'), open_needs: one("SELECT count(*) FROM care_need WHERE status='open'{F}"), current_needs: one("SELECT count(*) FROM care_need WHERE slot='CURRENT'{F}"), current_without_action: one("SELECT count(*) FROM care_need n WHERE n.slot='CURRENT' AND n.status='open' AND NOT EXISTS (SELECT 1 FROM action a WHERE a.need_id=n.need_id AND a.status='open') {Fn}"),
+    on_todays_list: one("SELECT count(*) FROM worklist WHERE list_status='today'{F}"), queued: one("SELECT count(*) FROM worklist WHERE list_status='queued'{F}"), nudges: one("SELECT count(*) FROM action WHERE status='open' AND kind='nudge'{F}"), open_follow_ups: one("SELECT count(*) FROM action WHERE status='open' AND kind='follow_up'{F}"), open_escalations: one("SELECT count(*) FROM action WHERE status='open' AND kind='escalation'{F}"),
+    reported_not_in_claims: one("SELECT count(*) FROM care_need WHERE gap_state='Reported'{F}"), closed_in_claims: one("SELECT count(*) FROM care_need WHERE gap_state='Closed'{F}"), consented: one("SELECT count(DISTINCT member_id) FROM consent_event WHERE consent_status='granted'{F}"), red: one(`SELECT count(*) FROM member_alert WHERE run_id = ${run.run_id || 0} AND alert_colour='RED'{F}`), amber: one(`SELECT count(*) FROM member_alert WHERE run_id = ${run.run_id || 0} AND alert_colour='AMBER'{F}`) };
 }
 module.exports = { latestRun, identity, risk, evaluations, carePlan, actions, timeline, longitudinal, members, programme, kpis };

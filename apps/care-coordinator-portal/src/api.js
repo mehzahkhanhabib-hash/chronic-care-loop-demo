@@ -1,8 +1,8 @@
 /** Shared API client. In development webpack proxies /api → http://localhost:4000; in production the backend serves the app. */
 const BASE = (typeof window !== 'undefined' && window.CCL_API_BASE) || (typeof process !== 'undefined' && process.env && process.env.CCL_API_BASE) || '/api';
 let currentUser = null;
-try { currentUser = JSON.parse(localStorage.getItem('ccl.user') || 'null'); } catch (e) { currentUser = null; }
-export function setUser(u) { currentUser = u; try { if (u) localStorage.setItem('ccl.user', JSON.stringify(u)); else localStorage.removeItem('ccl.user'); } catch (e) { /* ignore */ } }
+try { currentUser = JSON.parse(localStorage.getItem('ccl.portal.user') || 'null'); } catch (e) { currentUser = null; }
+export function setUser(u) { currentUser = u; try { if (u) localStorage.setItem('ccl.portal.user', JSON.stringify(u)); else localStorage.removeItem('ccl.portal.user'); } catch (e) { /* ignore */ } }
 export function getUser() { return currentUser; }
 export class ApiError extends Error { constructor(status, message, body) { super(message); this.status = status; this.body = body; } }
 async function call(method, path, body) {

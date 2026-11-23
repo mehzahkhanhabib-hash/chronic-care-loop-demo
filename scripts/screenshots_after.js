@@ -8,8 +8,8 @@ const post = (p, b) => fetch(API + p, { method: 'POST', headers: { 'content-type
 (async () => {
   const b = await chromium.launch(); const page = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage(); const errors = [];
   page.on('pageerror', e => errors.push(String(e))); page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  const shot = async (name, url, full) => { await page.goto(url, { waitUntil: 'networkidle' }); if (/#\/login/.test(page.url())) { await page.evaluate(u => localStorage.setItem('ccl.user', JSON.stringify(u)), USER); await page.goto(url); await page.reload({ waitUntil: 'networkidle' }); } await page.waitForTimeout(2000); await page.screenshot({ path: path.join(OUT, name + '.png'), fullPage: !!full }); console.log('✓', name); };
-  await page.goto(PORTAL + '/#/login'); await page.evaluate(u => localStorage.setItem('ccl.user', JSON.stringify(u)), USER); await page.goto(PORTAL + '/#/'); await page.reload({ waitUntil: 'networkidle' });
+  const shot = async (name, url, full) => { await page.goto(url, { waitUntil: 'networkidle' }); if (/#\/login/.test(page.url())) { await page.evaluate(u => localStorage.setItem('ccl.portal.user', JSON.stringify(u)), USER); await page.goto(url); await page.reload({ waitUntil: 'networkidle' }); } await page.waitForTimeout(2000); await page.screenshot({ path: path.join(OUT, name + '.png'), fullPage: !!full }); console.log('✓', name); };
+  await page.goto(PORTAL + '/#/login'); await page.evaluate(u => localStorage.setItem('ccl.portal.user', JSON.stringify(u)), USER); await page.goto(PORTAL + '/#/'); await page.reload({ waitUntil: 'networkidle' });
   await post('/portal/calls', { member_id: M, reached: true, response: 'Happy to talk' });
   await post('/portal/consent', { member_id: M, consent_status: 'granted' });
   await shot('portal-07-x206-after-consent', PORTAL + '/#/member/' + M);

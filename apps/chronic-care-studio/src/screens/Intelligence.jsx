@@ -14,16 +14,19 @@ const TIERN = { 1: 'Low', 2: 'Moderate', 3: 'High', 4: 'Very high' };
 
 export default function Intelligence({ onChanged }) {
   const { memberId } = useParams(); const nav = useNavigate(); const say = useToast();
-  const [filter, setFilter] = useState('all'); const [q, setQ] = useState(''); const [tier, setTier] = useState(''); const [campaign, setCampaign] = useState('');
+  const [filter, setFilter] = useState('all'); const [q, setQ] = useState(''); const [tier, setTier] = useState('');
+  const scopeApi = useApi('/studio/scope'); const cohorts = useApi('/cohorts');
+  const scope = scopeApi.data ? scopeApi.data.scope : null; const sq = scope ? 'scope=active' : '';
+  const setScope = async v => { const [kind, id] = v ? v.split(':') : []; try { await api.post('/studio/scope', kind === 'cohort' ? { cohort_id: id } : kind === 'campaign' ? { campaign_id: id } : {}); scopeApi.reload(); window.dispatchEvent(new Event('ccl:scope')); nav('/intelligence'); } catch (e) { say('Could not change the scope: ' + e.message); } };
   const [view, setView] = useState('members');
-  const kpis = useApi('/intelligence/kpis');
-  const qs = [FILTERS.find(f => f[0] === filter)[2], tier ? `tier=${tier}` : '', campaign ? `campaign=${campaign}` : '', q ? `q=${encodeURIComponent(q)}` : ''].filter(Boolean).join('&');
-  const list = useApi(`/intelligence/members?${qs}`);
-  const all = useApi('/intelligence/members');
+  const kpis = useApi(scopeApi.loading ? null : `/intelligence/kpis${sq ? '?' + sq : ''}`);
+  const qs = [FILTERS.find(f => f[0] === filter)[2], tier ? `tier=${tier}` : '', sq, q ? `q=${encodeURIComponent(q)}` : ''].filter(Boolean).join('&');
+  const list = useApi(scopeApi.loading ? null : `/intelligence/members?${qs}`);
+  const all = useApi(scopeApi.loading ? null : `/intelligence/members${sq ? '?' + sq : ''}`);
   const campaigns = useApi('/campaigns');
   const [running, setRunning] = useState(false);
   const sel = memberId || (list.data && list.data.members[0] && list.data.members[0].member_id) || null;
-  const runNow = async () => { setRunning(true); try { const r = await api.post('/intelligence/runs', {}); say(`Run ${r.run_id} finished: ${r.fired} triggers fired, ${r.needs_opened} new needs, ${r.needs_closed_in_claims} closed in claims`); kpis.reload(); list.reload(); all.reload(); onChanged && onChanged(); } catch (e) { say('Run failed: ' + e.message); } finally { setRunning(false); } };
+  const runNow = async () => { setRunning(true); try { const r = await api.post('/intelligence/runs', {}); say(`Run ${r.run_id} finished: ${r.fired} triggers fired, ${r.needs_opened} new needs, ${r.needs_closed_in_claims} closed in claims`); kpis.reload(); list.reload(); all.reload(); scopeApi.reload(); onChanged && onChanged(); } catch (e) { say('Run failed: ' + e.message); } finally { setRunning(false); } };
   const k = kpis.data;
   const counts = useMemo(() => { const c = { all: 0, RED: 0, AMBER: 0, YELLOW: 0, GREEN: 0 }; (all.data ? all.data.members : []).forEach(m => { c.all++; c[m.alert_colour] = (c[m.alert_colour] || 0) + 1; }); return c; }, [all.data]);
   const live = campaigns.data ? campaigns.data.campaigns.filter(c => c.status === 'Live') : [];
@@ -33,13 +36,18 @@ export default function Intelligence({ onChanged }) {
         <div>
           <div className="eyebrow caps">Step 2 · {k ? `Run ${k.run_id} · rule set ${k.rule_version} · as of ${k.run_date}` : 'Care intelligence'}</div>
           <h1 className="title">Who needs us most, and what for</h1>
-          <p className="desc">{live.length ? `Campaign ${live.map(c => c.id + ' · ' + c.name).join(', ')}. ` : ''}Each member was read against the CCC Rulebook: risk score R = C + M + K + U + A (max 23), the 14 triggers, an alert colour and a contact priority. Fired triggers become ranked needs, safety first; the top three are CURRENT and get one next best action each.</p>
+          <p className="desc">{scope ? '' : live.length ? `Campaign ${live.map(c => c.id + ' · ' + c.name).join(', ')}. ` : ''}Each member was read against the CCC Rulebook: risk score R = C + M + K + U + A (max 23), the 14 triggers, an alert colour and a contact priority. Fired triggers become ranked needs, safety first; the top three are CURRENT and get one next best action each.</p>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end' }}>
           {FILTERS.map(([key, label]) => <button key={key} className={'pill' + (filter === key ? ' on' : '')} onClick={() => { setFilter(key); nav('/intelligence'); }}>{label}{all.data ? ` · ${counts[key] || 0}` : ''}</button>)}
           <button className="btn sm" disabled={running} onClick={runNow}>{running ? 'Running…' : '↻ Run rules now'}</button>
         </div>
       </div>
+      {scope && <div role="status" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', background: '#0B2E57', color: '#FFFFFF', borderRadius: 16, padding: '12px 18px', marginBottom: 14 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 999, background: '#9FD7E6', color: '#10202A', whiteSpace: 'nowrap' }}>From the cohort builder</span>
+        <span style={{ flex: 1, minWidth: 220, fontSize: 14.5 }}><b>{scope.kind === 'campaign' ? 'Campaign' : 'Cohort'} {scope.id} · {scope.label}</b> · {fmt(scope.members)} members scored by the rulebook{scope.control_group ? ` · ${scope.control_group} in the control group (scored, not called)` : ''}. The care portal shows the same members.</span>
+        <button className="btn sm" style={{ background: '#FFFFFF', color: '#0B2E57' }} onClick={() => setScope('')}>Show all members</button>
+      </div>}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
         <div className="seg light" style={{ display: 'inline-flex' }}>{[['members', 'Members'], ['programme', 'Programme · per trigger'], ['runs', 'Run history']].map(([v, l]) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{l}</button>)}</div>
         {k && <span className="sm mut">{fmt(k.evaluated)} members scored · {fmt(k.triggers_fired)} triggers fired · {fmt(k.cannot_tell)} cannot tell · {fmt(k.care_plans)} care plans · {fmt(k.current_needs)} CURRENT needs · {fmt(k.on_todays_list)} on today’s lists · {fmt(k.queued)} queued · {fmt(k.reported_not_in_claims)} reported · {fmt(k.closed_in_claims)} closed in claims · {fmt(k.consented)} consented</span>}
@@ -52,16 +60,16 @@ export default function Intelligence({ onChanged }) {
           <div style={{ display: 'flex', gap: 6, padding: '6px 6px 8px', flexWrap: 'wrap' }}>
             <input className="txt" value={q} onChange={e => setQ(e.target.value)} placeholder="Search id or name…" aria-label="Search members" style={{ flex: 1, minWidth: 140 }} />
             <select className="sel" value={tier} onChange={e => setTier(e.target.value)} aria-label="Tier"><option value="">All tiers</option>{[4, 3, 2, 1].map(t => <option key={t} value={t}>Tier {t}</option>)}</select>
-            <select className="sel" value={campaign} onChange={e => setCampaign(e.target.value)} aria-label="Campaign"><option value="">All campaigns</option>{(campaigns.data ? campaigns.data.campaigns : []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+            <select className="sel" value={scope ? `${scope.kind}:${scope.id}` : ''} onChange={e => setScope(e.target.value)} aria-label="Which members" style={{ maxWidth: '100%' }}><option value="">All members (longitudinal extract)</option><optgroup label="Cohorts">{(cohorts.data ? cohorts.data.cohorts : []).map(c => <option key={c.id} value={`cohort:${c.id}`}>{c.name} · {c.n}</option>)}</optgroup><optgroup label="Campaigns">{(campaigns.data ? campaigns.data.campaigns : []).map(c => <option key={c.id} value={`campaign:${c.id}`}>{c.name} · {c.status}</option>)}</optgroup></select>
           </div>
           {list.loading && <Loading what="Loading members" />}
           {list.error && <ErrorBox error={list.error} retry={list.reload} what="the member list" />}
           {list.data && !list.data.members.length && <Empty>No members match these filters.</Empty>}
-          {list.data && <div className="xs mut" style={{ padding: '0 8px 4px' }}>{list.data.count} members · ordered safety/RED → tier → score</div>}
+          {list.data && <div className="xs mut" style={{ padding: '0 8px 4px' }}>{list.data.count} members{scope ? ` of ${scope.kind} ${scope.id}` : ''} · ordered safety/RED → tier → score</div>}
           {list.data && list.data.members.map(m => { const A = AL[m.alert_colour] || AL.GREEN; return <button key={m.member_id} className={'memrow' + (sel === m.member_id ? ' on' : '')} onClick={() => nav(`/intelligence/${m.member_id}`)}>
             <Avatar text={m.initials} size="md" soft />
-            <span style={{ minWidth: 0 }}><span className="nm">{m.display_name}<span className="id">{m.member_id}</span>{m.consent_status === 'granted' && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--teal)' }}>↩ consented</span>}</span><span className="rs">{m.current_needs || (m.triggers_fired ? `${m.triggers_fired} trigger(s) fired · not in a live campaign` : 'nothing fired')}</span><span style={{ display: 'inline-block', marginTop: 5, fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: A[1], color: A[2], whiteSpace: 'nowrap' }}>{m.safety_flag ? 'Safety · ' : ''}{A[0]}{m.contact_priority ? ` · ${m.contact_priority}` : ''}</span></span>
-            <span style={{ textAlign: 'right' }}><span className="R">{m.total_risk_score}</span><span className="tier">{TIERN[m.tier] || `tier ${m.tier}`}</span></span>
+            <span style={{ minWidth: 0 }}><span className="nm">{m.display_name}<span className="id">{m.member_id}</span>{m.consent_status === 'granted' && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--teal)' }}>↩ consented</span>}</span><span className="rs">{m.current_needs || (m.triggers_fired ? `${m.triggers_fired} trigger(s) fired · not in a live campaign` : 'nothing fired')}</span><span style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}><span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: (TIERC[m.tier] || TIERC[1])[0], color: (TIERC[m.tier] || TIERC[1])[1], whiteSpace: 'nowrap' }}>Tier {m.tier} · {TIERN[m.tier]}</span>{m.contact_priority && <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: A[1], color: A[2], whiteSpace: 'nowrap' }} title={SLA_TEXT[m.contact_priority]}>{m.contact_priority} · {m.alert_colour}{m.safety_flag ? ' · ⚑ safety' : ''}</span>}{m.control_group ? <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#EBF1F4', color: '#566A74', whiteSpace: 'nowrap' }} title="Control group: scored, not called">Control group</span> : null}</span></span>
+            <span style={{ textAlign: 'right' }}><span className="R">{m.total_risk_score}</span><span className="tier">R / 23</span></span>
           </button>; })}
         </section>
         <section className="col" style={{ flex: '1 1 560px' }}>{sel ? <MemberPanel id={sel} runDate={k ? k.run_date : null} /> : <Card><Empty>Select a member.</Empty></Card>}</section>
@@ -87,8 +95,9 @@ function MemberPanel({ id, runDate }) {
       <Avatar text={idn.initials} size="lg" />
       <div style={{ flex: 1, minWidth: 220 }}><div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-.01em' }}>{idn.display_name} <span className="sm mut mono" title="Masked member id; the name is a pseudonym generated for the demo">{id} · pseudonym</span></div><div className="sm" style={{ color: 'var(--ink2)', marginTop: 2 }}>{id} · {idn.age} · {idn.gender === 'F' ? 'female' : 'male'} · {conds || idn.pathway} · {idn.policy_type} plan · speaks {idn.language} · consent <b>{d.consent_status}</b>{nurse ? ` · nurse ${nurse}` : ''}{d.worklist ? ` · list: ${d.worklist.list_status}` : ''}</div></div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {r && <span className="chip" style={{ fontSize: 13, padding: '5px 12px', background: T[0], color: T[1] }}>{TIERN[r.tier]} risk</span>}
-        {al && <span className="chip" style={{ fontSize: 13, padding: '5px 12px', background: A[1], color: A[2] }} title={al.reasons}>{A[0]}</span>}
+        {r && <span className="chip" style={{ fontSize: 13, padding: '5px 12px', background: T[0], color: T[1] }} title={r.tier_rule ? `${r.tier_rule.campaign_does} · cadence ${r.tier_rule.cadence}` : ''}>Tier {r.tier} · {TIERN[r.tier]} risk · R {r.total_risk_score}/23</span>}
+        {al && <span className="chip" style={{ fontSize: 13, padding: '5px 12px', background: A[1], color: A[2] }} title={al.reasons}>{al.alert_colour} · {A[0]}</span>}
+        {al && <span className="chip" style={{ fontSize: 13, padding: '5px 12px', background: '#0B2E57', color: '#FFFFFF' }} title="Contact priority (rulebook §4)">{SLA_TEXT[al.contact_priority]}</span>}
         {r && r.safety_flag ? <span className="chip RED" style={{ fontSize: 13, padding: '5px 12px' }}>⚑ Priority clinical review</span> : null}
       </div>
     </Card>

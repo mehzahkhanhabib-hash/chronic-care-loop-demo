@@ -18,6 +18,14 @@ Reference: `data/source/Care-Coordinator-Portal.html` = **Care-Coordinator-Porta
 - Member 360 reads only raw-claims endpoints; claim ids open the activity lines and lab observations of that claim.
 - Not reproduced: wearables and deterioration predictions (no source data) and the 0–100 priority score (replaced by the rulebook's P1–P4, R and tier).
 
+## Cohort → intelligence → portal (Studio scope)
+
+- Hand-off from the campaign dialog stores the campaign in `app_setting.studio_scope` (`POST /api/studio/scope`). Members = the campaign's include cohorts minus its exclude cohorts (`cohort_member`), control group included and flagged.
+- `GET /api/intelligence/members|kpis?scope=active` and `GET /api/portal/worklist?scope=active` return only those members. The Studio header counts, the intelligence list, filters and KPIs, screen 3 and the portal queue all follow the scope; *Show all members* (Studio) and *My list* (portal) switch it off.
+- Screen 3 has one bar: the nurse the embedded portal is signed in as (passed as `?as=<username>`), the scope chip, list counts, open in portal, summary view. The embedded portal hides its own header.
+- Care plans: the Current · Next · Future board is the default in the Studio and the first panel of the portal's care plan, with the same card content (class, due, next best action, owner, done when, rule, action line).
+- Intelligence shows the tier (Tier n · label) and the contact priority (Pn · colour) on every member row and in the member header.
+
 ## Backend
 
 - `member_longitudinal` keeps every header of the longitudinal workbook as a column; rule evaluation reads it through a typed vector (dates as days before the as-of date).

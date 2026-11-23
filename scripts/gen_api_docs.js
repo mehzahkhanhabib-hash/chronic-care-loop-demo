@@ -31,7 +31,9 @@ const E = [
   ['Care Intelligence', 'GET', '/members/x206/explain', null, 'Dry-run evaluation of one member (nothing written)'],
   ['Care Intelligence', 'GET', '/intelligence/members?limit=2', null, 'Screen-2 list: all members with risk, alert, triggers fired, campaign, worklist'],
   ['Care Intelligence', 'GET', '/intelligence/programme', null, 'Per-trigger counts: fired / cannot tell / open / CURRENT / reported / closed'],
-  ['Care Intelligence', 'GET', '/intelligence/kpis', null, 'Programme KPIs'],
+  ['Care Intelligence', 'GET', '/intelligence/kpis', null, 'Programme KPIs (add ?scope=active for the handed-off cohort only)'],
+  ['Studio · cohorts and campaigns', 'GET', '/studio/scope', null, 'The cohort or campaign last handed off from the cohort builder (null when none). Intelligence and the portal follow it with ?scope=active'],
+  ['Studio · cohorts and campaigns', 'POST', '/studio/scope', { campaign_id: 'CMP-0101' }, 'Set the scope to a campaign ({campaign_id}) or a cohort ({cohort_id}); {} clears it'],
   ['Care Intelligence', 'GET', '/intelligence/runs', null, 'Run history'],
   ['Care Intelligence', 'POST', '/intelligence/runs', {}, 'Run the engine now (optional member_ids: [...])'],
   ['Care Intelligence', 'GET', '/intelligence/evaluations?rule_id=Trig1&result=fired&limit=2', null, 'Evaluations across members'],
@@ -62,7 +64,7 @@ const E = [
   let group = '';
   for (const [g, m, p, body, desc] of E) {
     if (g !== group) { md += `\n## ${g}\n`; group = g; }
-    if (p.startsWith('/admin') || (m === 'POST' && /cohorts$|campaigns$|outcomes|consent|calls|assertions|appointments|notes|complete|runs/.test(p) && !process.env.WRITE)) { md += `\n### \`${m} ${p}\`\n${desc}\n\n\`\`\`json\n${body ? JSON.stringify(body, null, 2) : ''}\n\`\`\`\n`; continue; }
+    if (p.startsWith('/admin') || (m === 'POST' && /cohorts$|campaigns$|studio\/scope|outcomes|consent|calls|assertions|appointments|notes|complete|runs/.test(p) && !process.env.WRITE)) { md += `\n### \`${m} ${p}\`\n${desc}\n\n\`\`\`json\n${body ? JSON.stringify(body, null, 2) : ''}\n\`\`\`\n`; continue; }
     const r = await fetch(BASE + p, { method: m, headers: { 'content-type': 'application/json', 'x-user': 'U-0150' }, body: body ? JSON.stringify(body) : undefined });
     const j = await r.json();
     md += `\n### \`${m} ${p}\`\n${desc}\n\n${body ? 'Request body:\n```json\n' + JSON.stringify(body, null, 2) + '\n```\n' : ''}Response (${r.status}):\n\`\`\`json\n${JSON.stringify(trim(j), null, 2)}\n\`\`\`\n`;

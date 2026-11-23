@@ -6,8 +6,9 @@ import CarePlanCard from '../components/CarePlanCard';
 import { dateShort, dateTime, SLA_TEXT } from '../lib/format';
 
 /* Screen 3 · Care portal. Studio_7 shows the Care Coordinator Portal full-bleed under the Studio header; this screen embeds the real portal app
-   (dev: http://localhost:3001, production: /portal) and adds one slim strip: nurse, list tabs, ranked call list, open-in-portal link, and a
-   Studio summary (care plan + timeline) for when the portal app is not running. Data: GET /api/users, GET /api/portal/worklist. */
+   (dev: http://localhost:3001, production: /portal) under one bar: the nurse the portal is signed in as (?as=<username>), the cohort handed off
+   from the builder (GET /api/studio/scope), list counts, open-in-portal, and a Studio summary view for when the portal app is not running.
+   The embedded portal hides its own header, so this bar is the only one. Data: GET /api/users, /api/studio/scope, /api/portal/worklist. */
 const DEV = process.env.NODE_ENV !== 'production';
 const PORTAL_BASE = DEV ? 'http://localhost:3001' : '/portal';
 const PROBE = DEV ? '/__portal/' : '/portal/';   // same-origin in both modes (dev: proxied by the Studio dev server)
@@ -28,61 +29,70 @@ function usePortalUp() {
 export default function Portal() {
   const { memberId } = useParams(); const nav = useNavigate();
   const users = useApi('/users');
+  const scopeApi = useApi('/studio/scope'); const scope = scopeApi.data ? scopeApi.data.scope : null;
   const nurses = useMemo(() => (users.data || []).filter(u => u.daily_capacity !== null && u.daily_capacity !== undefined), [users.data]);
-  const [nurse, setNurse] = useState('');
+  const [nurse, setNurse] = useState(() => { try { return localStorage.getItem('ccl.studio.nurse') || ''; } catch (e) { return ''; } });
   const [status, setStatus] = useState('today');
-  useEffect(() => { if (!nurse && nurses.length) setNurse(nurses[0].user_id); }, [nurses, nurse]);
-  const wl = useApi(nurse ? `/portal/worklist?nurse_id=${nurse}&status=${status}` : null);
-  const all = useApi(nurse ? `/portal/worklist?nurse_id=${nurse}` : null);
+  useEffect(() => { if ((!nurse || !nurses.some(n => n.user_id === nurse)) && nurses.length) setNurse(nurses[0].user_id); }, [nurses, nurse]);
+  const nurseObj = nurses.find(n => n.user_id === nurse);
+  useEffect(() => { if (!nurseObj) return; try { localStorage.setItem('ccl.studio.nurse', nurse); } catch (e) { /* ignore */ } window.dispatchEvent(new CustomEvent('ccl:nurse', { detail: nurseObj })); }, [nurseObj]); // eslint-disable-line
+  useEffect(() => () => window.dispatchEvent(new CustomEvent('ccl:nurse', { detail: null })), []);
+  // the list the portal shows: the cohort handed off from the builder (all nurses) when there is one, otherwise the chosen nurse's list
+  const base = scope ? 'scope=active' : nurse ? `nurse_id=${nurse}` : null;
+  const all = useApi(base && !scopeApi.loading ? `/portal/worklist?${base}` : null);
   const [up, retry] = usePortalUp();
   const [wantSummary, setWantSummary] = useState(false);
-  const [listOpen, setListOpen] = useState(null);
   const summary = wantSummary || up === false;
-  const showList = listOpen === null ? summary : listOpen;
   const counts = useMemo(() => { const c = {}; (all.data ? all.data.items : []).forEach(i => { c[i.list_status] = (c[i.list_status] || 0) + 1; }); return c; }, [all.data]);
-  const items = wl.data ? wl.data.items : [];
+  const items = (all.data ? all.data.items : []).filter(i => i.list_status === status);
   const sel = memberId || (summary && items[0] ? items[0].member_id : null);
-  const selItem = (all.data ? all.data.items : []).find(i => i.member_id === sel);
-  const nurseObj = nurses.find(n => n.user_id === nurse);
-  const src = sel ? `${PORTAL_BASE}/#/member/${sel}` : `${PORTAL_BASE}/`;
+  const as = nurseObj ? `?as=${nurseObj.username}` : '';
+  const src = sel ? `${PORTAL_BASE}/#/member/${sel}${as}` : `${PORTAL_BASE}/#/${as}`;
+  const SEL = { border: '1px solid #DCE6EB', borderRadius: 999, padding: '8px 12px', fontSize: 13.5, background: '#FFFFFF', color: '#10202A', fontWeight: 700, maxWidth: 260 };
   return (
     <div data-screen-label="Care portal" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 69px)', minHeight: 560, background: '#EEF7FA' }}>
-      <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 24px', background: '#FFFFFF', borderBottom: '1px solid #DCE6EB' }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#0A6F96', whiteSpace: 'nowrap' }}>Step 3 · Care portal</span>
-        {users.loading ? <span style={{ fontSize: 13, color: '#566A74' }}>Loading the care team…</span> : users.error ? <ErrorBox error={users.error} retry={users.reload} what="the care team" />
-          : <select value={nurse} onChange={e => { setNurse(e.target.value); nav('/portal'); }} aria-label="Nurse" style={{ border: '1px solid #DCE6EB', borderRadius: 12, padding: '8px 10px', fontSize: 13.5, background: '#FFFFFF', color: '#10202A', fontWeight: 600, maxWidth: 280 }}>{nurses.map(u => <option key={u.user_id} value={u.user_id}>{u.name} · {u.role}</option>)}</select>}
-        <div role="tablist" aria-label="Call list" style={{ display: 'flex', background: '#EBF1F4', borderRadius: 12, padding: 3 }}>
-          {LISTS.map(([k, l]) => <button key={k} role="tab" aria-selected={status === k} onClick={() => { setStatus(k); setListOpen(true); }} style={{ border: 0, borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...pill(status === k) }}>{l} · {all.data ? counts[k] || 0 : '…'}</button>)}
+      <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '12px 24px', background: '#FFFFFF', borderBottom: '1px solid #DCE6EB' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0A6F96', letterSpacing: '.04em', textTransform: 'uppercase' }}>Step 3 · Care portal</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#10202A', whiteSpace: 'nowrap' }}>Nurse workstation</div>
         </div>
-        <button onClick={() => setListOpen(!showList)} aria-pressed={showList} style={BTN}>{showList ? 'Hide call list' : 'Show call list'}</button>
-        <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: '#566A74', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selItem ? `#${selItem.nurse_rank} · ${selItem.display_name} · ${sel} · ${selItem.action_title}` : sel ? `Member ${sel}` : nurseObj ? `${nurseObj.name} · speaks ${nurseObj.languages} · capacity ${nurseObj.daily_capacity} a day` : ''}</span>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#566A74', whiteSpace: 'nowrap' }}>Signed in as
+          {users.loading ? <span>…</span> : users.error ? <ErrorBox error={users.error} retry={users.reload} what="the care team" />
+            : <select value={nurse} onChange={e => { setNurse(e.target.value); nav('/portal'); }} aria-label="Nurse the portal is signed in as" style={SEL}>{nurses.map(u => <option key={u.user_id} value={u.user_id}>{u.name} · {u.role}</option>)}</select>}
+        </label>
+        {scope ? <span title={scope.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, maxWidth: 420, padding: '6px 12px', borderRadius: 999, background: '#0B2E57', color: '#FFFFFF', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span style={{ color: '#9FD7E6', fontWeight: 700 }}>From the cohort builder</span>{scope.id} · {scope.members} members</span>
+          : <span style={{ fontSize: 13, color: '#566A74', whiteSpace: 'nowrap' }}>{nurseObj ? `${nurseObj.name}'s list` : ''}</span>}
+        <span style={{ display: 'inline-flex', gap: 10, fontSize: 13, color: '#3E525D', whiteSpace: 'nowrap' }}>{LISTS.map(([k, l]) => <span key={k}><b style={{ color: '#10202A' }}>{all.data ? counts[k] || 0 : '…'}</b> {l.toLowerCase()}</span>)}</span>
+        <span style={{ flex: 1 }} />
         <a href={src} target="_blank" rel="noreferrer" style={BTN}>Open in the portal ↗</a>
-        <button onClick={() => setWantSummary(s => !s)} disabled={up === false} style={{ ...BTN, opacity: up === false ? 0.45 : 1 }}>{summary ? 'Show the portal' : 'Summary'}</button>
+        <button onClick={() => setWantSummary(s => !s)} disabled={up === false} style={{ ...BTN, opacity: up === false ? 0.45 : 1 }}>{summary ? 'Show the portal' : 'Summary view'}</button>
       </div>
       {up === false && <div role="status" style={{ flex: 'none', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', padding: '10px 24px', background: '#FFF1C7', color: '#8A5A00', fontSize: 13.5 }}>
         <span style={{ flex: 1, minWidth: 220 }}><b>The Care Coordinator Portal is not answering on {PORTAL_BASE}.</b> Showing the Studio summary from the same database instead. Start the portal with <span className="mono">npm run dev</span>, then retry.</span>
         <button onClick={retry} style={{ ...BTN, borderColor: '#8A5A00', background: 'transparent', color: '#8A5A00' }}>Retry</button>
       </div>}
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        {showList && <aside aria-label="Ranked call list" style={{ flex: '0 0 340px', minWidth: 0, background: '#FFFFFF', borderRight: '1px solid #DCE6EB', overflow: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {nurseObj && <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 10px 10px' }}><Avatar text={nurseObj.name.split(' ').map(w => w[0]).join('')} size="sm" /><div style={{ minWidth: 0 }}><div style={{ fontWeight: 700, fontSize: 14.5 }}>{nurseObj.name}</div><div style={{ fontSize: 12.5, color: '#566A74' }}>{nurseObj.role} · {LISTS.find(l => l[0] === status)[1]} · in rule order</div></div></div>}
-          {wl.loading && <Loading what="Loading the worklist" />}
-          {wl.error && <ErrorBox error={wl.error} retry={wl.reload} what="the worklist" />}
-          {wl.data && !items.length && <Empty>Nothing in “{LISTS.find(l => l[0] === status)[1]}” for this nurse.</Empty>}
+        {summary && <aside aria-label="Ranked call list" style={{ flex: '0 0 340px', minWidth: 0, background: '#FFFFFF', borderRight: '1px solid #DCE6EB', overflow: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div role="tablist" aria-label="Call list" style={{ display: 'flex', background: '#EBF1F4', borderRadius: 12, padding: 3, margin: '4px 4px 8px' }}>
+            {LISTS.map(([k, l]) => <button key={k} role="tab" aria-selected={status === k} onClick={() => setStatus(k)} style={{ flex: 1, border: 0, borderRadius: 999, padding: '6px 8px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', ...pill(status === k) }}>{l} · {all.data ? counts[k] || 0 : '…'}</button>)}
+          </div>
+          {all.loading && <Loading what="Loading the worklist" />}
+          {all.error && <ErrorBox error={all.error} retry={all.reload} what="the worklist" />}
+          {all.data && !items.length && <Empty>Nothing in “{LISTS.find(l => l[0] === status)[1]}”.</Empty>}
           {items.map(i => { const a = sel === i.member_id, C = ALC[i.alert_colour] || ALC.GREEN; return <button key={i.member_id} className={a ? '' : 'hov-row2'} onClick={() => nav(`/portal/${i.member_id}`)} style={{ display: 'grid', gridTemplateColumns: '26px minmax(0,1fr) auto', gap: 10, alignItems: 'center', textAlign: 'left', border: 0, borderRadius: 12, padding: '10px 10px', cursor: 'pointer', background: a ? '#BCE7F2' : '#FFFFFF', color: '#10202A' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#566A74', textAlign: 'center' }}>{i.nurse_rank}</span>
             <span style={{ minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{i.display_name} <span style={{ fontSize: 12, fontWeight: 600, color: '#566A74' }}>{i.member_id}</span></span>
               <span style={{ display: 'block', fontSize: 12.5, color: '#566A74', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{i.current_needs || i.action_title || '—'}</span>
-              <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: C[0], color: C[1], whiteSpace: 'nowrap' }}>{i.contact_priority} · tier {i.tier}{i.attempt > 1 ? ` · attempt ${i.attempt}` : ''} · consent {i.consent_status}</span>
+              <span style={{ display: 'inline-block', marginTop: 4, fontSize: 11.5, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: C[0], color: C[1], whiteSpace: 'nowrap' }}>{i.contact_priority} · tier {i.tier}{scope && i.nurse_name ? ` · ${i.nurse_name.split(' ')[0]}` : ''} · consent {i.consent_status}</span>
             </span>
             <span style={{ textAlign: 'right' }}><span style={{ display: 'block', fontSize: 13, fontWeight: 700 }}>{dateShort(i.due_by)}</span><span style={{ fontSize: 11.5, color: '#566A74' }}>due</span></span>
           </button>; })}
         </aside>}
         {summary
-          ? <div style={{ flex: 1, minWidth: 0, overflow: 'auto', padding: '20px 24px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>{sel ? <Fallback id={sel} /> : wl.loading || !nurse ? <Loading what="Loading the worklist" /> : <Card><Empty>Select a member from the call list.</Empty></Card>}</div>
-          : up === null ? <div style={{ flex: 1, padding: 24 }}><Loading what="Opening the Care Coordinator Portal" /></div>
-            : <iframe key={sel || 'home'} title="Care Coordinator Portal" src={src} style={{ flex: 1, minWidth: 0, display: 'block', width: '100%', height: '100%', border: 0, background: '#EEF7FA' }} />}
+          ? <div style={{ flex: 1, minWidth: 0, overflow: 'auto', padding: '20px 24px 40px', display: 'flex', flexDirection: 'column', gap: 16 }}>{sel ? <Fallback id={sel} /> : all.loading || !base ? <Loading what="Loading the worklist" /> : <Card><Empty>Select a member from the call list.</Empty></Card>}</div>
+          : up === null || !nurseObj ? <div style={{ flex: 1, padding: 24 }}><Loading what="Opening the Care Coordinator Portal" /></div>
+            : <iframe key={(sel || 'home') + nurse + (scope ? scope.id : '')} title="Care Coordinator Portal" src={src} style={{ flex: 1, minWidth: 0, display: 'block', width: '100%', height: '100%', border: 0, background: '#EEF7FA' }} />}
       </div>
     </div>
   );

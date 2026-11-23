@@ -86,6 +86,8 @@ The full script with the expected numbers is in **`docs/demo-scenarios/DEMO.md`*
 1. **`x2063`** · type 2 diabetes · tier 4 Very high · HbA1c 11.3 · seven fired triggers.
 2. **`x206`** · type 2 diabetes + hypertension · tier 3 High · HbA1c 9.5, BP 154/75 · HbA1c, BP and kidney triggers.
 
+**Cohort → intelligence → portal.** Build a cohort in the Studio, save it, set up a campaign and press *Hand off to care intelligence*. The Studio stores that campaign's members as the active scope: *Care intelligence* then lists and counts only those members (with a banner and a *Show all members* button), and the Care Coordinator Portal's queue shows the same members across every nurse (a *My list* chip switches back). The scope can also be picked from the member-list dropdown on the intelligence screen.
+
 In the Studio open *Care intelligence* and search the id; in the Portal log in as the nurse named in the guide, open the member from the queue, grant consent, record the call and the outcomes, and watch the care plan, tasks and the Studio update.
 
 ## 5. Where things are
